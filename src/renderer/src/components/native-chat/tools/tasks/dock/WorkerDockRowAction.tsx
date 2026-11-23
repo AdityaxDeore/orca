@@ -32,12 +32,10 @@ function workerDockPressStillLive(press: Press, readLosses: () => number): boole
 /** A dock row's Stop or Clear, which keeps the pressed intent through a structural update. */
 export function WorkerDockRowAction({
   row,
-  narrow,
   pending,
   onAction
 }: {
   row: WorkerDockRowView
-  narrow: boolean
   pending: boolean
   onAction: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
 }) {
@@ -70,11 +68,11 @@ export function WorkerDockRowAction({
   })
   return (
     <div
+      // Stop and Clear show on hover or focus only, so a column of failures is not a column of x's;
+      // a pending Stop stays in view.
       className={cn(
-        'flex shrink-0 justify-center pt-1.5',
-        narrow ? 'w-11' : 'w-10',
-        action === 'stop' &&
-          !pending &&
+        'flex w-10 shrink-0 items-center justify-center [@media(pointer:coarse)]:w-11',
+        !pending &&
           'opacity-0 group-hover/worker:opacity-100 group-focus-within/worker:opacity-100 [@media(pointer:coarse)]:opacity-100'
       )}
     >
@@ -87,7 +85,7 @@ export function WorkerDockRowAction({
               variant="ghost-on-accent-inset"
               size="icon-xs"
               data-worker-dock-action={row.id}
-              className={cn(narrow ? (action === 'clear' ? 'h-6 w-11' : 'size-11') : 'size-6.5')}
+              className="size-6.5 [@media(pointer:coarse)]:size-11"
               aria-label={
                 action === 'clear'
                   ? t('components.native-chat.workerDock.clearName', 'Clear {{name}}', {
