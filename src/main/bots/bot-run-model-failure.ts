@@ -5,7 +5,6 @@ import {
   type AutomationRunFailure
 } from '../../shared/automations/history/automation-run-failure-copy'
 import type { Bot } from '../../shared/bot-types'
-import { sanitizeCrashReportString } from '../../shared/crash-reporting/crash-report-redaction'
 import type { BotTurnEnd } from './bot-run-turn-watch'
 
 /** A run continuing a conversation has no launch setup of its own to name. */
@@ -21,6 +20,6 @@ export function botRunModelFailure(
   const model = failure.detail?.text ?? runBot?.launch?.model
   return automationRunModelUnavailable({
     ...(agent ? { agent, agentLabel: tuiAgentDisplayName(agent) ?? agent } : {}),
-    ...(model ? { model: sanitizeCrashReportString(model) } : {})
+    ...(model ? { model } : {})
   })
 }

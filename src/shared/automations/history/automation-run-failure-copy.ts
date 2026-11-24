@@ -1,3 +1,5 @@
+import { sanitizeCrashReportString } from '../../crash-reporting/crash-report-redaction'
+
 // One English table for automation run skip/failure reasons: main persists `error`, the renderer translates by code.
 // Skip coalescing keys on exact `error` text, so wording changes here also split folded runs.
 export const AUTOMATION_RUN_FAILURE_COPY = {
@@ -97,7 +99,12 @@ export function automationRunFailure(
 }
 
 /** Bounds the provider-derived model name a run record keeps. */
-export const AUTOMATION_RUN_MODEL_PARAM_MAX = 120
+export function automationRunModelParam(model: string): string {
+  return sanitizeCrashReportString(model)
+    .replace(/[\p{Cc}\p{Cf}]/gu, ' ')
+    .trim()
+    .slice(0, 120)
+}
 
 /** The run's agent could not use its model. `agent` only when the run's own agent is known. */
 export function automationRunModelUnavailable({
@@ -109,10 +116,7 @@ export function automationRunModelUnavailable({
   agentLabel?: string
   model?: string
 }): AutomationRunFailure {
-  const bounded = model
-    ?.replace(/[\p{Cc}\p{Cf}]/gu, ' ')
-    .trim()
-    .slice(0, AUTOMATION_RUN_MODEL_PARAM_MAX)
+  const bounded = model ? automationRunModelParam(model) : ''
   const EN = AUTOMATION_RUN_FAILURE_COPY
   return {
     error: EN.agentModelUnavailable

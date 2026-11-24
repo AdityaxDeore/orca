@@ -12,6 +12,7 @@ import {
 import { useTranslate } from '@/i18n/use-translate'
 import { agentPickerModels } from '../../../../../shared/agent-launch/picker/agent-launch-picker-catalog'
 import type { AgentPickerEntry } from '../../../../../shared/agent-launch/picker/agent-launch-picker'
+import { automationRunModelParam } from '../../../../../shared/automations/history/automation-run-failure-copy'
 import type { Bot, BotAgent } from '../../../../../shared/bot-types'
 import { folderWorkspaceKey } from '../../../../../shared/workspace/identity/workspace-scope'
 
@@ -52,6 +53,10 @@ function useAutomationRunModelOptions(
   return menu.choices.includes(agent) ? automationRunModelOptions(entries, agent) : null
 }
 
+function isFailedModel(id: string, failedModel?: string): boolean {
+  return failedModel !== undefined && automationRunModelParam(id) === failedModel
+}
+
 export function AutomationRunModelSelect({
   options,
   failedModel,
@@ -69,7 +74,8 @@ export function AutomationRunModelSelect({
   const t = useTranslate()
   const nameId = useId()
   const valueId = useId()
-  const failedLabel = options.find((option) => option.id === failedModel)?.label ?? failedModel
+  const failedLabel =
+    options.find((option) => isFailedModel(option.id, failedModel))?.label ?? failedModel
   return (
     <Select
       value=""
@@ -77,16 +83,17 @@ export function AutomationRunModelSelect({
       defaultOpen={defaultOpen}
       onValueChange={(next) => {
         const option = options.find((candidate) => candidate.id === next)
-        if (option && next !== failedModel) {
+        if (option && !isFailedModel(next, failedModel)) {
           onPick(option)
         }
       }}
     >
       <SelectTrigger
         size="xs"
+        variant="error"
         aria-labelledby={`${nameId} ${valueId}`}
         title={failedLabel}
-        className="max-w-[45%] min-w-36 shrink-0 border-destructive/30 bg-background text-foreground data-[placeholder]:text-foreground dark:bg-background *:data-[slot=select-value]:block *:data-[slot=select-value]:truncate"
+        className="max-w-[45%] min-w-36 shrink-0 @max-[25rem]:max-w-[calc(100%_-_4.5rem)] @max-[25rem]:gap-0.5 @max-[25rem]:px-1.5 @max-[25rem]:[&_svg]:size-3"
       >
         <span id={nameId} className="sr-only">
           {t('automations.runModelFix.model', 'Model')}
@@ -99,14 +106,14 @@ export function AutomationRunModelSelect({
       <SelectContent position="popper" side="bottom" align="end">
         {failedModel ? (
           <SelectItem value={failedModel} disabled>
-            {failedLabel}
+            {failedLabel}{' '}
             <span className="text-muted-foreground">
               {t('automations.runModelFix.failed', 'Failed')}
             </span>
           </SelectItem>
         ) : null}
         {options
-          .filter((option) => option.id !== failedModel)
+          .filter((option) => !isFailedModel(option.id, failedModel))
           .map((option) => (
             <SelectItem key={option.id} value={option.id}>
               {option.label}
@@ -134,7 +141,7 @@ export function AutomationRunModelPicker({
 }): React.JSX.Element {
   const options = useAutomationRunModelOptions(bot, agent)
   return renderNotice(
-    options?.some((option) => option.id !== failedModel) ? (
+    options?.some((option) => !isFailedModel(option.id, failedModel)) ? (
       <AutomationRunModelSelect
         options={options}
         failedModel={failedModel}

@@ -188,7 +188,7 @@ export abstract class OrcaRuntimeWithAutomationApiOperations extends OrcaRuntime
     return this.automation.withExternalProbePriority(async () => {
       const source = this.automationChangeSelector(input.id)
       const result = await this.automation.recoverModel(input, expectedOwner)
-      if (result.status === 'saved' || result.status === 'queued') {
+      if (result.status !== 'changed' && result.status !== 'busy') {
         this.publishAutomationDefinitionChange(source, this.automationChangeSelector(input.id))
       }
       return result

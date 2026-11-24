@@ -5,6 +5,7 @@ import type {
   AutomationModelRecoveryResult
 } from '../../../../shared/automations/history/automation-model-recovery'
 import type { AutomationOwnerPrecondition } from '../../../../shared/automations/ownership/automation-owner-precondition'
+import { automationRunModelParam } from '../../../../shared/automations/history/automation-run-failure-copy'
 import { BotLaunchSchema } from '../../../../shared/bots/bot-launch'
 import {
   resolveBotAutomationRunTarget,
@@ -68,7 +69,7 @@ export async function recoverAutomationModel(
       target.runsIn !== 'new' ||
       failed?.status !== 'dispatch_failed' ||
       failed.errorCode !== 'agentModelUnavailable' ||
-      failed.errorParams?.model === model
+      failed.errorParams?.model === automationRunModelParam(model)
     ) {
       return { status: 'changed' }
     }
@@ -81,7 +82,11 @@ export async function recoverAutomationModel(
     const expected = structuredClone(recoveryTarget(bot, resolved))
     // Keep the read and write synchronous so the other bot settings come from the same record.
     store.updateAutomation(id, { bot, agentId: resolved.bot.agent }, { expectedOwner })
-    await flush({ drainToStableGeneration: false })
+    try {
+      await flush({ drainToStableGeneration: false })
+    } catch {
+      return { status: 'unconfirmed' }
+    }
 
     let newerModel: boolean
     try {

@@ -6,6 +6,6 @@ export type AutomationModelRecoveryInput = {
 }
 
 export type AutomationModelRecoveryResult =
-  | { status: 'changed' | 'busy' }
+  | { status: 'changed' | 'busy' | 'unconfirmed' }
   | { status: 'saved'; rerun: 'skipped' | 'unconfirmed' }
   | { status: 'queued'; runId: string; newerModel?: true }

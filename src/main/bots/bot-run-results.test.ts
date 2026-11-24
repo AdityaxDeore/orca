@@ -13,14 +13,26 @@ const NOTICE =
   "This run's message was answered together with another message, so its result wasn't posted."
 
 it('keeps the failed run’s agent and model in the run result', async () => {
-  const completion = await deliverBotRunResult({ notify: () => {} } as BotRunDeliveryDependencies, {
-    automation: { id: 'auto-1', name: 'Morning digest', dtstart: 1 },
-    run: { id: 'run-1', trigger: 'scheduled' },
-    bot: makeTestBot({ agent: 'claude', launch: { model: 'model-x' } }),
-    target: { runsIn: 'new', resultsTo: 'none' },
-    sessionId: 'session-1',
-    ended: { outcome: 'failure', message: '', failure: { kind: 'modelUnavailable' } }
-  })
+  const completion = await deliverBotRunResult(
+    {
+      notify: () => {},
+      noteToChat: async () => {},
+      sendToChat: async () => {},
+      postAsBot: () => null,
+      cloudSignedOut: () => false,
+      noteToRun: async () => {},
+      replyInThread: () => null,
+      turnForOf: async () => 'none'
+    },
+    {
+      automation: { id: 'auto-1', name: 'Morning digest', dtstart: 1 },
+      run: { id: 'run-1', trigger: 'scheduled' },
+      bot: makeTestBot({ agent: 'claude', launch: { model: 'model-x' } }),
+      target: { runsIn: 'new', resultsTo: 'none' },
+      sessionId: 'session-1',
+      ended: { outcome: 'failure', message: '', failure: { kind: 'modelUnavailable' } }
+    }
+  )
 
   expect(completion).toMatchObject({
     status: 'dispatch_failed',

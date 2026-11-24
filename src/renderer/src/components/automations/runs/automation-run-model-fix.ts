@@ -57,6 +57,14 @@ export function showAutomationModelRecoveryResult(
     case 'busy':
       toast(translate('automations.runModelFix.busy', 'A model change is already in progress.'))
       break
+    case 'unconfirmed':
+      toast.error(
+        translate(
+          'automations.runModelFix.unconfirmed',
+          "Couldn't confirm the model change. Check the automation before rerunning."
+        )
+      )
+      break
     case 'saved':
       toast.error(
         result.rerun === 'skipped'

@@ -1,6 +1,4 @@
 import { useEffect, useRef } from 'react'
-import { toast } from 'sonner'
-import { translate } from '@/i18n/i18n'
 import type { Bot } from '../../../../../shared/bot-types'
 import { automationRowHostId } from '../automations-page-navigation'
 import {
@@ -73,18 +71,13 @@ export function useAutomationRunModelActions(
       if (result.notice.severity === 'owner') {
         destination.reportOwnerAction(selectedRow.key, result.notice)
       } else {
-        toast.error(
-          translate(
-            'automations.runModelFix.unconfirmed',
-            "Couldn't confirm the model change. Check the automation before rerunning."
-          )
-        )
+        showAutomationModelRecoveryResult({ status: 'unconfirmed' }, model.label)
       }
       return
     }
 
     destination.reportOwnerAction(selectedRow.key, null)
-    if (result.value.status === 'saved' || result.value.status === 'queued') {
+    if (result.value.status !== 'changed' && result.value.status !== 'busy') {
       destination.invalidateRowHost(selectedRow.key, 'definition')
     }
     showAutomationModelRecoveryResult(result.value, model.label)
