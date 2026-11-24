@@ -23827,6 +23827,7 @@
       "rerunFailed": "Bu otomasyonun modeli {{model}} olarak ayarlandı, ancak yeniden çalıştırma başlamadı.",
       "saved": "Bu otomasyonun modeli {{model}} olarak ayarlandı.",
       "queuedWithNewerModel": "Çalıştırma, otomasyonun en son kaydedilen modeliyle kuyruğa alındı.",
+      "modelUnavailable": "Model kullanılamıyor.",
       "errorWithPicker": "{{agent}} bu modeli kullanamadı.",
       "failed": "Başarısız",
       "busy": "Model değişikliği zaten devam ediyor.",

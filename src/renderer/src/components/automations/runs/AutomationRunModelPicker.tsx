@@ -93,7 +93,7 @@ export function AutomationRunModelSelect({
         variant="destructive"
         aria-labelledby={`${nameId} ${valueId}`}
         title={failedLabel}
-        className="max-w-[45%] min-w-36 shrink-0 @max-[25rem]:max-w-[calc(100%_-_4.75rem)]"
+        className="max-w-[45%] min-w-0 @max-[33rem]:max-w-none"
       >
         <span id={nameId} className="sr-only">
           {t('automations.runModelFix.model', 'Model')}
@@ -107,9 +107,7 @@ export function AutomationRunModelSelect({
         {failedModel ? (
           <SelectItem value={failedModel} disabled>
             {failedLabel}{' '}
-            <span className="text-muted-foreground">
-              {t('automations.runModelFix.failed', 'Failed')}
-            </span>
+            <span className="text-foreground">{t('automations.runModelFix.failed', 'Failed')}</span>
           </SelectItem>
         ) : null}
         {options

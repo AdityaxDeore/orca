@@ -127,7 +127,10 @@ export function AutomationRunDetailsPage({
   const renderFailureNotice = (action?: React.ReactNode, agent?: BotAgent) => (
     <AutomationRunErrorNotice
       action={action}
-      oneLine={Boolean(action)}
+      compactError={
+        action ? t('automations.runModelFix.modelUnavailable', 'Model unavailable.') : undefined
+      }
+      busy={isModelFixPending}
       label={t('auto.components.automations.runIdentity.runFailed', 'Run failed.')}
       error={
         action && agent

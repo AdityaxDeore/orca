@@ -126,33 +126,36 @@ export function AutomationRunErrorNotice({
   label,
   error,
   action,
-  oneLine,
+  compactError,
+  busy,
   className
 }: {
   label: string
   error: string
   /** The one step that fixes this failure, when there is one. */
   action?: React.ReactNode
-  /** Keeps the notice to one line beside `action`; the sentence truncates, its full text a tooltip. */
-  oneLine?: boolean
+  compactError?: string
+  busy?: boolean
   className?: string
 }): React.JSX.Element {
   return (
     <div
-      role={oneLine ? undefined : 'alert'}
+      role={compactError ? undefined : 'alert'}
+      aria-busy={busy || undefined}
       className={cn(
         'flex items-center gap-x-3 gap-y-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive',
-        oneLine ? 'flex-nowrap @max-[25rem]:gap-x-1 @max-[25rem]:px-1.5' : 'flex-wrap',
+        compactError ? 'flex-nowrap' : 'flex-wrap',
         className
       )}
     >
       <span
-        role={oneLine ? 'alert' : undefined}
-        className={cn('min-w-0 flex-1', oneLine && 'truncate')}
-        title={oneLine ? `${label} ${error}` : undefined}
+        role={compactError ? 'alert' : undefined}
+        className={cn('flex-1', compactError ? 'min-w-max whitespace-nowrap' : 'min-w-0')}
       >
-        <span className="font-medium">{label}</span>{' '}
-        <span className={oneLine ? '@max-[25rem]:sr-only' : undefined}>{error}</span>
+        {compactError ? <span className="@min-[33rem]:hidden">{compactError}</span> : null}
+        <span className={compactError ? '@max-[33rem]:hidden' : undefined}>
+          <span className="font-medium">{label}</span> {error}
+        </span>
       </span>
       {action}
     </div>

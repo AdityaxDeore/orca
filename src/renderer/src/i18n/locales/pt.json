@@ -24722,6 +24722,7 @@
       "rerunFailed": "Modelo definido como {{model}} para esta automação, mas a nova execução não começou.",
       "saved": "Modelo definido como {{model}} para esta automação.",
       "queuedWithNewerModel": "A execução foi colocada na fila com o modelo mais recente da automação.",
+      "modelUnavailable": "Modelo indisponível.",
       "errorWithPicker": "{{agent}} não conseguiu usar este modelo.",
       "failed": "Falhou",
       "busy": "Já há uma alteração de modelo em andamento.",

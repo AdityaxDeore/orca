@@ -23708,6 +23708,7 @@
       "rerunFailed": "Modell für diese Automatisierung auf {{model}} gesetzt, aber die erneute Ausführung wurde nicht gestartet.",
       "saved": "Modell für diese Automatisierung auf {{model}} gesetzt.",
       "queuedWithNewerModel": "Der Lauf wurde mit dem aktuellen Modell der Automatisierung in die Warteschlange gestellt.",
+      "modelUnavailable": "Modell nicht verfügbar.",
       "errorWithPicker": "{{agent}} konnte dieses Modell nicht verwenden.",
       "failed": "Fehlgeschlagen",
       "busy": "Das Modell wird bereits geändert.",

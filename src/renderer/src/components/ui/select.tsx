@@ -41,7 +41,7 @@ const selectTriggerVariants = cva('', {
     variant: {
       default: '',
       destructive:
-        'border-destructive/30 bg-background text-foreground data-[placeholder]:text-foreground dark:bg-background *:data-[slot=select-value]:block *:data-[slot=select-value]:truncate @max-[25rem]:gap-0.5 @max-[25rem]:px-1 @max-[25rem]:[&_svg]:size-3'
+        'border-destructive/30 bg-background text-foreground data-[placeholder]:text-foreground dark:bg-background *:data-[slot=select-value]:block *:data-[slot=select-value]:truncate'
     }
   },
   defaultVariants: { density: 'default', variant: 'default' }

@@ -24888,6 +24888,7 @@
       "rerunFailed": "このオートメーションのモデルを {{model}} に設定しましたが、再実行を開始できませんでした。",
       "saved": "このオートメーションのモデルを {{model}} に設定しました。",
       "queuedWithNewerModel": "オートメーションの最新モデルで実行をキューに追加しました。",
+      "modelUnavailable": "モデルを使用できません。",
       "errorWithPicker": "{{agent}} はこのモデルを使用できませんでした。",
       "failed": "失敗",
       "busy": "モデルを変更しています。",

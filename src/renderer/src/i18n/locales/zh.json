@@ -26371,6 +26371,7 @@
       "rerunFailed": "已将此自动化的模型设为 {{model}}，但重新运行未能开始。",
       "saved": "已将此自动化的模型设为 {{model}}。",
       "queuedWithNewerModel": "已使用此自动化最新保存的模型将运行加入队列。",
+      "modelUnavailable": "模型不可用。",
       "errorWithPicker": "{{agent}} 无法使用此模型。",
       "failed": "失败",
       "busy": "正在更换模型。",

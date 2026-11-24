@@ -1,7 +1,6 @@
-import { RefreshCw } from 'lucide-react'
+import { LoaderCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTranslate } from '@/i18n/use-translate'
-import { cn } from '@/lib/class-names'
 
 export function AutomationRunRerunButton({
   pending,
@@ -21,7 +20,11 @@ export function AutomationRunRerunButton({
       aria-busy={pending || undefined}
       onClick={onRerun}
     >
-      <RefreshCw className={cn('size-3.5', pending && 'motion-safe:animate-spin')} />
+      {pending ? (
+        <LoaderCircle aria-hidden="true" className="size-3.5 motion-safe:animate-spin" />
+      ) : (
+        <RefreshCw aria-hidden="true" className="size-3.5" />
+      )}
       {t('auto.components.automations.AutomationsPage.295698292f', 'Rerun')}
     </Button>
   )

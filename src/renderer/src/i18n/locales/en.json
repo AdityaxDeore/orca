@@ -27073,6 +27073,7 @@
       "rerunFailed": "Model set to {{model}} for this automation, but the rerun didn’t start.",
       "saved": "Model set to {{model}} for this automation.",
       "queuedWithNewerModel": "Run queued with the automation's latest model.",
+      "modelUnavailable": "Model unavailable.",
       "errorWithPicker": "{{agent}} couldn't use this model.",
       "failed": "Failed",
       "busy": "A model change is already in progress.",
