@@ -3,9 +3,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Delivery } from './external-conversation-types'
 
-const send = vi.hoisted(() => ({
-  run: null as null | ((admitted: () => void) => Promise<Delivery>)
-}))
+const send = vi.hoisted(() => {
+  const holder: { run: null | ((admitted: () => void) => Promise<Delivery>) } = { run: null }
+  return holder
+})
 
 vi.mock('./external-conversation-chat', async (actual) => ({
   ...(await actual<Record<string, unknown>>()),
