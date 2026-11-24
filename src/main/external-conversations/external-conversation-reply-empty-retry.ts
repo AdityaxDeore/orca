@@ -61,6 +61,7 @@ export function emptyTurnRetry(deps: {
         !store ||
         !turn.live ||
         !turn.bot ||
+        !turn.askedBy ||
         own.length === 0 ||
         connectorReplyTurnOutcome(turn).outcome !== 'no_answer' ||
         turn.turnStartedAt === undefined
@@ -95,7 +96,7 @@ export function emptyTurnRetry(deps: {
         kind: 'message',
         role: 'user',
         blocks: [{ type: 'text', text: turn.toolsRan ? RETRY_AFTER_TOOLS_PROMPT : RETRY_PROMPT }],
-        // Asked for whoever asked the turn, where they asked it.
+        // Asked for the one person who asked the turn, where they asked it.
         ...turn.askedBy,
         connectorClaim: {
           cutTurnId: cut.turnId,

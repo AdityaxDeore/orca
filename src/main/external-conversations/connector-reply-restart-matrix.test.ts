@@ -1,4 +1,5 @@
 import { mkdtempSync, rmSync } from 'node:fs'
+import { retryAskerOf } from './external-conversation-turn-ends'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -758,7 +759,9 @@ describe('an empty turn is asked once more, from its live end only', () => {
   beforeEach(() => asks.splice(0))
   const asking = (result: Awaited<ReturnType<EmptyRetrySend>>) =>
     start({ bot: true, continuationsSettled: Promise.resolve(), retry: { send: send(result) } })
-  const ended = { sessionId: 'chat-1', stamps: [stampOf('d1')], prose: '', bot: true, links: [] }
+  const stamps = [stampOf('d1')]
+  const ended = { sessionId: 'chat-1', stamps, prose: '', bot: true, links: [] }
+  const solo = { ...ended, ...retryAskerOf(asked('d1'), stamps) }
   const end = (opener: string, key = 'item:t1', toolsRan = false) => ({
     turnItemId: key,
     openerItemId: agentJournalSubmissionKey(opener),
@@ -768,7 +771,7 @@ describe('an empty turn is asked once more, from its live end only', () => {
     live: true as const
   })
   const liveEnd = (p: ReturnType<typeof start>, key: string, opener: string, toolsRan: boolean) =>
-    p.fillTurn({ ...ended, ...end(opener, key, toolsRan) })
+    p.fillTurn({ ...solo, ...end(opener, key, toolsRan) })
 
   it('asks once; still empty, the request closes with no answer and the first turn’s tools', async () => {
     const p = asking('accepted')
@@ -815,11 +818,19 @@ describe('an empty turn is asked once more, from its live end only', () => {
     })
   })
 
+  it('never asks for a turn that answered requests from more than its opener', async () => {
+    const p = asking('accepted')
+    const both = ['d1', 'd2'].map((id, at) => (admit(p.db, `m${at + 1}`, asked(id)), stampOf(id)))
+    p.show([p.message('m1'), p.message('m2'), ...p.turn('item:t1', 'm1', 'completed')])
+    await p.fillTurn({ ...ended, stamps: both, ...retryAskerOf(asked('d1'), both), ...end('m1') })
+    expect([asks.length, p.outcomes().d2?.outcome]).toEqual([0, 'no_answer'])
+  })
+
   it('closes with one no answer at once when the ask is refused', async () => {
     const p = asking('refused')
     admit(p.db, 'm1', asked('d1', ['d2']))
     p.show([p.message('m1'), ...p.turn('item:t1', 'm1', 'completed')])
-    await p.fillTurn({ ...ended, stamps: [{ ...stampOf('d1'), carried: ['d2'] }], ...end('m1') })
+    await p.fillTurn({ ...solo, stamps: [{ ...stampOf('d1'), carried: ['d2'] }], ...end('m1') })
     await p.publish()
     expect(asks).toHaveLength(1)
     const closed = { outcome: 'no_answer', head: 'd1' }
@@ -835,15 +846,13 @@ function submissionOf(
   messageId: string,
   fields: Partial<AgentJournalSubmission> = {}
 ): AgentJournalSubmission {
+  const fixed = { fence: 1, dispatchState: 'accepted', providerItemId: null, reason: null } as const
+  const times = { submittedAt: 1, resolvedAt: 2 }
   return {
     clientMessageId: messageId,
-    fence: 1,
     payloadFingerprint: messageId,
-    dispatchState: 'accepted',
-    providerItemId: null,
-    reason: null,
-    submittedAt: 1,
-    resolvedAt: 2,
+    ...fixed,
+    ...times,
     ...fields
   }
 }
