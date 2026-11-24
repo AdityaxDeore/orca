@@ -1,10 +1,10 @@
-// One item, in the list's place: a frozen header (title, status, links, Reply), then the description
-// (clamped), chat, done means and activity scrolling under it, and a comment box that wakes its chat.
+// One item, in the list's place: a frozen header (title; its status sits in the back row), then the
+// description (clamped), done when, links, where it came from and activity scrolling under it, and a
+// comment box that wakes its chat.
 // BotItemPane holds it under the back row and sends typing from anywhere in it to the comment box.
 // The comment box always stays at the bottom: a reply to the agent's question is a comment, typed there
 // or picked from the question's quick replies.
 import { useDeferredValue, useEffect, useMemo, useRef } from 'react'
-import { ExternalLink, House, MessageSquare } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useLatestHandler } from '@/lib/use-latest-handler'
@@ -46,6 +46,9 @@ import { useBotItemPendingComments } from './use-bot-item-pending-comments'
 import { BotItemsReadFailed } from './BotItemsReadFailed'
 import { BotItemNavRow } from './BotItemStepper'
 import { BotItemLoading } from './BotItemLoading'
+import { BotItemLinksBlock } from './BotItemLinks'
+import { BotItemMarkdown } from './BotItemMarkdown'
+import { BotItemFrom } from './BotItemFrom'
 
 const NO_FOLDERS: never[] = []
 
@@ -55,6 +58,7 @@ export function BotItemView({
   listed,
   takeFocus,
   commentRef,
+  statusSlot,
   nav,
   onShown,
   onLoading,
@@ -64,6 +68,8 @@ export function BotItemView({
   uid: string
   listed?: BotItem
   commentRef?: React.RefObject<BotItemCommentBoxHandle | null>
+  /** Where the status menu goes: the pane's back row. */
+  statusSlot?: HTMLElement | null
   /** Whether the item should take focus as it shows (nothing else in the pane holds it). */
   takeFocus?: () => boolean
   /** The previous / next arrows, for the comment box's tool row. */
@@ -107,6 +113,7 @@ export function BotItemView({
       deleted={deleted}
       takeFocus={takeFocus}
       commentRef={commentRef}
+      statusSlot={statusSlot}
       nav={nav}
     />
   )
@@ -164,6 +171,7 @@ export function BotItemBody({
   deleted = false,
   takeFocus,
   commentRef,
+  statusSlot,
   nav
 }: {
   bot: Bot
@@ -175,6 +183,8 @@ export function BotItemBody({
   takeFocus?: () => boolean
   /** Where the comment box's handle goes, for the pane's type-to-focus. */
   commentRef?: React.RefObject<BotItemCommentBoxHandle | null>
+  /** Where the status menu goes; without one the header gives it a row of its own. */
+  statusSlot?: HTMLElement | null
   /** The previous / next arrows, for the comment box's tool row. */
   nav?: React.ReactNode
 }): React.JSX.Element {
@@ -199,7 +209,6 @@ export function BotItemBody({
       toast.error(botErrorMessage(error))
     )
   const notes = useBotItemStatusNotes((_items, to, note) => setStatus(to, note))
-  const ChatIcon = item.chat.kind === 'home' ? House : MessageSquare
   const pending = useBotItemPendingComments(bot, item.uid, view.events)
   // The header and comment box paint first; the Activity, the costly part, renders right after.
   const activityMounted = useDeferredValue(true, false)
@@ -312,45 +321,41 @@ export function BotItemBody({
                     <BotItemHeader
                       bot={bot}
                       item={item}
-                      chatTitle={chatTitle}
                       deleted={deleted}
                       onStatus={(to) => notes.move([item], to)}
                       snoozing={snoozing}
                       scrollRef={scrollRef}
                       reply={needsYou.reply}
                       onHeight={needsYou.setHeaderHeight}
+                      statusSlot={statusSlot}
                     />
-                    <div ref={contentRef} className="flex flex-col gap-4 px-3.5 pt-2">
+                    <div ref={contentRef} className="flex flex-col gap-4 px-3.5 pt-3.5">
                       {item.description ? (
-                        <BotItemClampedText text={item.description} clampClassName="max-h-[57px]" />
+                        <BotItemClampedText
+                          text={item.description}
+                          clampClassName="max-h-[57px]"
+                          render={renderDescription}
+                        />
                       ) : null}
                       {item.status === 'canceled' || item.status === 'done' ? (
                         <CloseNote item={item} />
                       ) : null}
-                      <dl className="grid grid-cols-[84px_minmax(0,1fr)] items-start gap-x-2 gap-y-1 text-xs @max-[284px]:grid-cols-[72px_minmax(0,1fr)]">
-                        <dt className="leading-6 text-muted-foreground">
-                          {t('bots.items.field.chat', 'Chat')}
-                        </dt>
-                        <dd className="flex h-6 items-center">
-                          <button
-                            type="button"
-                            className="flex min-w-0 items-center gap-1.5 text-foreground hover:underline"
-                            onClick={() => openBotSession(bot, item.chat.id)}
-                          >
-                            <ChatIcon className="size-3 shrink-0 text-muted-foreground" />
-                            <span className="truncate">{chatTitle}</span>
-                            <ExternalLink className="size-3 shrink-0 text-muted-foreground" />
-                          </button>
-                        </dd>
-                        {item.doneMeans ? (
-                          <>
-                            <dt className="leading-[18px] text-muted-foreground">
-                              {t('bots.items.field.doneMeans', 'Done means')}
-                            </dt>
-                            <dd className="leading-[18px] text-foreground">{item.doneMeans}</dd>
-                          </>
-                        ) : null}
-                      </dl>
+                      {item.doneMeans ? (
+                        <section>
+                          <h3 className="mb-1 text-xs text-muted-foreground">
+                            {t('bots.items.field.doneWhen', 'Done when')}
+                          </h3>
+                          <p className="text-[13px] leading-[19px] break-words text-foreground">
+                            {item.doneMeans}
+                          </p>
+                        </section>
+                      ) : null}
+                      <BotItemLinksBlock bot={bot} links={item.links} chat={chatTitle} />
+                      <BotItemFrom
+                        chat={chatTitle}
+                        createdAt={item.createdAt}
+                        onOpen={() => openBotSession(bot, item.chat.id)}
+                      />
                       <section className="pb-2">
                         <h3 className="mb-1.5 text-xs text-muted-foreground">
                           {t('bots.items.view.activity', 'Activity')}
@@ -427,4 +432,9 @@ function CloseNote({ item }: { item: BotItem }): React.JSX.Element | null {
       <span className="text-foreground">{item.closeNote}</span>
     </p>
   )
+}
+
+/** File paths in the description read as their file name. */
+function renderDescription(text: string): React.ReactNode {
+  return <BotItemMarkdown text={text} shortFileLinks />
 }
