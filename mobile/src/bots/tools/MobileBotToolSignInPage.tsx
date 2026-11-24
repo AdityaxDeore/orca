@@ -15,7 +15,7 @@ import { useMobileColorScheme } from '../../theme/use-mobile-color-scheme'
 import { MobileBotTextButton } from '../MobileBotTextButton'
 import type { BotToolPhoneSignIn } from './use-bot-tool-phone-sign-in'
 
-function StepNumber({ n }: { n: number }) {
+export function StepNumber({ n }: { n: number }) {
   return (
     <View style={styles.number}>
       <Text style={styles.numberText}>{n}</Text>
