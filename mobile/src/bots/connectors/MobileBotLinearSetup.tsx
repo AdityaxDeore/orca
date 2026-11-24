@@ -6,6 +6,7 @@ import { ArrowUpRight } from 'lucide-react-native'
 import { botLinearWorkspaces, type BotLinearLink } from '../../../../src/shared/bot-types'
 import type { ConnectorLinearWorkspace } from '../../../../src/shared/connector-bot-linear-contract'
 import { BOT_LINEAR_OFF } from '../../../../src/shared/connector-bot-linear-contract'
+import { BOT_CONNECTOR_NAMES } from '../../../../src/shared/bots/bot-templates'
 import { MobileStateView } from '../../components/feedback/MobileStateView'
 import { ListRow } from '../../components/list/ListGroup'
 import { SheetHeader } from '../../components/nav-bar/SheetHeader'
@@ -234,6 +235,15 @@ export function MobileBotLinearSetup(props: {
                     })
               }
             >
+              <ListRow
+                leading={<MobileConnectorSourceIcon source="linear" size={20} />}
+                title={BOT_CONNECTOR_NAMES.linear}
+                subtitle={t(
+                  'bots.linear.connect.pickSubtitle',
+                  'Pick the workspace {{name}} works in',
+                  { name: bot.name }
+                )}
+              />
               <ListRow
                 leading={<ArrowUpRight size={18} color={colors.accentBlue} />}
                 accent

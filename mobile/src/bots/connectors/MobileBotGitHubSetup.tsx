@@ -10,6 +10,7 @@ import {
   GITHUB_BOT_MENTION,
   type ConnectorGitHubInstallation
 } from '../../../../src/shared/connector-bot-github-contract'
+import { BOT_CONNECTOR_NAMES } from '../../../../src/shared/bots/bot-templates'
 import { MobileStateView } from '../../components/feedback/MobileStateView'
 import { ListRow } from '../../components/list/ListGroup'
 import { SheetHeader } from '../../components/nav-bar/SheetHeader'
@@ -175,6 +176,14 @@ export function MobileBotGitHubSetup(props: {
                     })} ${t('bots.github.connect.readsOnly', 'Orca only reads your GitHub username and id.')}`
               }
             >
+              <ListRow
+                leading={<MobileConnectorSourceIcon source="github" size={20} />}
+                title={BOT_CONNECTOR_NAMES.github}
+                subtitle={t(
+                  'bots.github.connect.pickSubtitle',
+                  'Choose the repositories it can work in'
+                )}
+              />
               <ListRow
                 leading={<ArrowUpRight size={18} color={colors.accentBlue} />}
                 accent

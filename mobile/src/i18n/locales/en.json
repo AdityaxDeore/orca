@@ -7675,7 +7675,8 @@
         "stuck": "Stuck on a Linear page that says “Could not find OAuth client”? Orca’s Linear app isn’t open to this workspace yet. An admin of the workspace that owns the app must make it public.",
         "pick": "Choose a Linear workspace.",
         "handoffPick": "Pick the workspace and choose Authorize.",
-        "signIn": "Sign in to Linear"
+        "signIn": "Sign in to Linear",
+        "pickSubtitle": "Pick the workspace {{name}} works in"
       },
       "address": "linear.app/{{urlKey}}",
       "account": {
@@ -7735,7 +7736,8 @@
         "requested": "An owner of the organization has been asked to approve the Orca app.",
         "notInstalled": "The Orca app is not on any of your repositories yet.",
         "handoffPick": "Sign in and choose the repositories.",
-        "signIn": "Sign in to GitHub"
+        "signIn": "Sign in to GitHub",
+        "pickSubtitle": "Choose the repositories it can work in"
       },
       "allRepositoriesShort": "all repositories"
     },

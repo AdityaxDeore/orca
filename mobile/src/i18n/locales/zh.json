@@ -8010,7 +8010,8 @@
         "stuck": "卡在显示“Could not find OAuth client”的 Linear 页面上？Orca 的 Linear 应用尚未向此工作区开放。拥有该应用的工作区的管理员必须将其设为公开",
         "pick": "选择一个 Linear 工作区",
         "handoffPick": "选择工作区并点击 Authorize。",
-        "signIn": "登录 Linear"
+        "signIn": "登录 Linear",
+        "pickSubtitle": "选择 {{name}} 工作的工作区"
       },
       "address": "linear.app/{{urlKey}}",
       "account": {
@@ -8070,7 +8071,8 @@
         "requested": "已请求组织所有者批准 Orca 应用",
         "notInstalled": "Orca 应用尚未安装在你的任何仓库上",
         "handoffPick": "登录并选择仓库。",
-        "signIn": "登录 GitHub"
+        "signIn": "登录 GitHub",
+        "pickSubtitle": "选择它可以使用的仓库"
       },
       "allRepositoriesShort": "所有仓库"
     },
