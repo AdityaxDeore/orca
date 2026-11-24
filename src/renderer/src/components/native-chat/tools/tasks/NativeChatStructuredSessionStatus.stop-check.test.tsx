@@ -90,6 +90,9 @@ const worker: WorkerDockRowView = {
   ownerActionsAvailable: true
 }
 const STOP = 'Stop Verifier · Review journal'
+// A narrow strip (as here, with no layout) keeps a row's state in its accessible name, not its text.
+const rowName = () =>
+  document.querySelector('[data-worker-dock-open]')?.getAttribute('aria-label') ?? ''
 
 const tasks: StructuredSessionBackgroundTasksView = {
   show: true,
@@ -355,7 +358,8 @@ it.each([
     hoisted.identities = [identity({ state: 'stopping' })]
     renderDock()
     expect(screen.queryByRole('button', { name: STOP })).toBeNull()
-    expect(screen.queryByText('Waiting on you')).toBeNull()
+    expect(rowName()).toContain('Verifier')
+    expect(rowName()).not.toContain('Waiting on you')
     expect(stopCalls()).toHaveLength(0)
   }
 )
@@ -363,7 +367,7 @@ it.each([
 it('still stops a running worker that is waiting on an approval', async () => {
   hoisted.approvals = [approval]
   renderDock()
-  expect(screen.getByText('Waiting on you')).toBeInTheDocument()
+  expect(rowName()).toContain('Waiting on you')
   fireEvent.click(screen.getByRole('button', { name: STOP }), { detail: 1 })
   await act(async () => {})
   expect(stopCalls()).toHaveLength(1)
