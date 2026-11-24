@@ -25,6 +25,8 @@ describe('retryAskerOf', () => {
     expect(retryAskerOf(opener, [stamp('d1')]).askedBy).toEqual({ origin: 'connector', asker })
     expect(retryAskerOf(opener, [stamp('d1'), stamp('d2')]).askedBy).toBeUndefined()
     expect(retryAskerOf(message({}), [stamp('d1')]).askedBy).toBeUndefined()
+    const elsewhere = { ...stamp('d1'), account: 'account-b' }
+    expect(retryAskerOf(opener, [stamp('d1'), elsewhere]).askedBy).toBeUndefined()
   })
 
   it('asks for no one named in a continuation of one cut request, and not at all for several', () => {

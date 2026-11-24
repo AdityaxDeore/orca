@@ -1,5 +1,4 @@
 import { mkdtempSync, rmSync } from 'node:fs'
-import { retryAskerOf } from './external-conversation-turn-ends'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -39,6 +38,7 @@ import { emptyTurnRetry, type EmptyRetrySend } from './external-conversation-rep
 import { ConnectorReplyRecovery } from './external-conversation-reply-recovery'
 import { connectorReplyTurnStamps } from '../../shared/agent-session/journal/journal-connector-reply-turn'
 import { replyEventsOf } from '../connector-cloud/connector-reply-outbox'
+import { retryAskerOf } from './external-conversation-turn-ends'
 
 // Phase 1 restart matrix, desktop side: a real journal file reopened on every "restart", the real
 // admission writer, recovery and fill, a fake clock. Each case asserts the rows' durable outcome.
