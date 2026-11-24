@@ -16456,7 +16456,6 @@
           "noRemote": "Local git repo · no remote",
           "openUpstream": "Open {{value0}} in browser",
           "forkOf": "Fork of {{value0}}",
-          "customize": "Change icon and color",
           "openSettingsPage": "Open settings page",
           "done": "Done",
           "resetDone": "Icon and color reset",

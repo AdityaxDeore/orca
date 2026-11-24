@@ -1,6 +1,6 @@
 import type { Repo } from '../../../../shared/repository/repo-types'
 import { defineFixture } from '../../component-fixtures/component-fixture'
-import { ProjectPeekHoverCard } from './project-peek/ProjectPeekHoverCard'
+import { ProjectPeekPopover } from './project-peek/ProjectPeekPopover'
 import { RepoMark } from './RepoMark'
 
 function repo(id: string, addedAt: number, extra: Partial<Repo> = {}): Repo {
@@ -41,21 +41,21 @@ export const disambiguated = defineFixture({
   )
 })
 
-/** Hovering the mark opens the quick appearance editor. */
-export const hoverEditor = defineFixture({
+/** Clicking the mark opens the appearance editor. */
+export const clickEditor = defineFixture({
   width: 360,
   store: { repos: REPOS },
   render: () => (
     <div className="p-3">
-      <ProjectPeekHoverCard repo={REPOS[1]}>
-        <span tabIndex={0} data-testid="mark" className="inline-flex">
+      <ProjectPeekPopover repo={REPOS[1]}>
+        <button type="button" data-testid="mark" className="inline-flex">
           <RepoMark repo={REPOS[1]} />
-        </span>
-      </ProjectPeekHoverCard>
+        </button>
+      </ProjectPeekPopover>
     </div>
   ),
   interact: async (frame) => {
-    frame.querySelector<HTMLElement>('[data-testid="mark"]')?.focus()
-    await new Promise((resolve) => setTimeout(resolve, 700))
+    frame.querySelector<HTMLElement>('[data-testid="mark"]')?.click()
+    await new Promise((resolve) => setTimeout(resolve, 500))
   }
 })

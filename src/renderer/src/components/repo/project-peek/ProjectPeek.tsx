@@ -1,10 +1,9 @@
 import React from 'react'
-import { GitFork, Github, Gitlab, Globe, Pencil, Settings } from 'lucide-react'
+import { GitFork, Github, Gitlab, Globe } from 'lucide-react'
 import { useAppStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
-import { cn } from '@/lib/class-names'
 import type { Repo } from '../../../../../shared/repository/repo-types'
 import { getRepoExecutionHostId } from '../../../../../shared/execution-host/execution-host'
 import { buildGitHubRepoUrl } from '../../../../../shared/github/repositories/links'
@@ -12,8 +11,6 @@ import type { RepoAppearanceUpdate } from '../../settings/repository/identity/us
 import { RepoMarkTile, useRepoAutoMarkColor, useRepoMarkAppearance } from '../RepoMark'
 import { ProjectAppearanceEditor } from './ProjectAppearanceEditor'
 import { getProjectRemoteDisplay, type ProjectRemoteDisplay } from './project-remote-display'
-
-export type ProjectPeekMode = 'info' | 'edit'
 
 const REMOTE_ICONS = { github: Github, gitlab: Gitlab, other: Globe } as const
 
@@ -130,101 +127,42 @@ function RemoteLines({
 function ProjectPeekHeader({
   repo,
   remote,
-  mode,
-  onModeChange,
   onRequestClose
 }: {
   repo: Repo
   remote: ProjectRemoteDisplay | null
-  mode: ProjectPeekMode
-  onModeChange: (mode: ProjectPeekMode) => void
   onRequestClose: () => void
 }): React.JSX.Element {
   const t = useTranslate()
   const appearance = useRepoMarkAppearance(repo)
-  const openSettingsTarget = useAppStore((state) => state.openSettingsTarget)
-  const openSettingsPage = useAppStore((state) => state.openSettingsPage)
-  const editLabel = t('auto.components.repo.ProjectPeek.customize', 'Change icon and color')
-  const settingsLabel = t('auto.components.repo.ProjectPeek.openSettingsPage', 'Open settings page')
   return (
-    <div className={cn('flex items-start gap-3 px-3 pt-3', mode === 'edit' ? 'pb-2' : 'pb-3')}>
-      <button
-        type="button"
-        onClick={() => onModeChange(mode === 'edit' ? 'info' : 'edit')}
-        aria-label={editLabel}
-        aria-pressed={mode === 'edit'}
-        title={editLabel}
-        className="group/mark relative shrink-0 rounded-[10px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <RepoMarkTile
-          repoIcon={repo.repoIcon}
-          appearance={appearance}
-          className="transition-transform group-hover/mark:scale-[1.04]"
-        />
-        <span
-          className={cn(
-            'absolute -right-1.5 -bottom-1.5 inline-flex size-4 items-center justify-center rounded-full border border-border bg-popover text-muted-foreground shadow-xs transition-opacity group-hover/mark:text-foreground group-hover/mark:opacity-100 group-focus-visible/mark:opacity-100',
-            // Why: a quiet hint at rest keeps edit discoverable without covering the mark.
-            mode === 'edit' ? 'hidden' : 'opacity-60'
-          )}
-          aria-hidden
-        >
-          <Pencil className="size-2.5" />
-        </span>
-      </button>
+    <div className="flex items-start gap-3 px-3 pt-3 pb-2">
+      <RepoMarkTile repoIcon={repo.repoIcon} appearance={appearance} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="min-w-0 truncate text-sm font-semibold leading-5 text-foreground">
           {repo.displayName}
         </span>
         <RemoteLines repo={repo} remote={remote} />
       </div>
-      {mode === 'edit' ? (
-        <Button
-          type="button"
-          variant="secondary"
-          size="xs"
-          className="self-center"
-          onClick={() => onModeChange('info')}
-        >
-          {t('auto.components.repo.ProjectPeek.done', 'Done')}
-        </Button>
-      ) : (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="muted-field-icon"
-              size="icon-xs"
-              className="-mr-1"
-              aria-label={settingsLabel}
-              onClick={() => {
-                onRequestClose()
-                openSettingsTarget({ pane: 'repo', repoId: repo.id })
-                openSettingsPage()
-              }}
-            >
-              <Settings />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top" sideOffset={4}>
-            {settingsLabel}
-          </TooltipContent>
-        </Tooltip>
-      )}
+      <Button
+        type="button"
+        variant="secondary"
+        size="xs"
+        className="self-center"
+        onClick={onRequestClose}
+      >
+        {t('auto.components.repo.ProjectPeek.done', 'Done')}
+      </Button>
     </div>
   )
 }
 
 export function ProjectPeek({
   repo,
-  mode,
-  onModeChange,
   onRequestClose
 }: {
   repo: Repo
-  mode: ProjectPeekMode
-  onModeChange: (mode: ProjectPeekMode) => void
-  /** Closes the card even while editing is pinned, before navigating elsewhere. */
+  /** Closes the popover, e.g. before navigating to settings. */
   onRequestClose: () => void
 }): React.JSX.Element {
   const storeUpdateRepo = useAppStore((state) => state.updateRepo)
@@ -238,23 +176,15 @@ export function ProjectPeek({
     [storeUpdateRepo, hostId]
   )
   return (
-    <div>
-      <ProjectPeekHeader
+    <div className="text-xs">
+      <ProjectPeekHeader repo={repo} remote={remote} onRequestClose={onRequestClose} />
+      <ProjectAppearanceEditor
         repo={repo}
         remote={remote}
-        mode={mode}
-        onModeChange={onModeChange}
+        autoColor={autoColor}
+        updateRepo={updateRepo}
         onRequestClose={onRequestClose}
       />
-      {mode === 'edit' ? (
-        <ProjectAppearanceEditor
-          repo={repo}
-          remote={remote}
-          autoColor={autoColor}
-          updateRepo={updateRepo}
-          onRequestClose={onRequestClose}
-        />
-      ) : null}
     </div>
   )
 }

@@ -25,6 +25,7 @@ import {
 import { useState } from 'react'
 import { Image, StyleSheet, Text, View } from 'react-native'
 import type { MobileRenderableRepoIcon } from '../../host-screen/host-screen-reply-schema'
+import { readableTextColorOn } from '../../../../src/shared/repository/appearance/repo-badge-color'
 import { colors, radii } from '../../theme/mobile-theme'
 import { useMobileColorScheme } from '../../theme/use-mobile-color-scheme'
 
@@ -86,7 +87,10 @@ export function MobileRepoIcon({ repoIcon, size = 14, color = colors.textSeconda
         <Text
           style={[
             styles.lettersText,
-            { fontSize: size * (repoIcon.text.length > 1 ? 0.46 : 0.62) }
+            {
+              color: readableTextColorOn(color),
+              fontSize: size * (repoIcon.text.length > 1 ? 0.46 : 0.62)
+            }
           ]}
           numberOfLines={1}
         >
@@ -112,7 +116,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   lettersText: {
-    color: '#ffffff',
     fontWeight: '600'
   },
   emoji: {

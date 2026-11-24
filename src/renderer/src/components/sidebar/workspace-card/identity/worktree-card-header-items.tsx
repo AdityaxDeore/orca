@@ -1,7 +1,7 @@
 import React from 'react'
 import { FolderMinus, House, Server, ServerOff, Star, Trash2 } from 'lucide-react'
 
-import { ProjectPeekHoverCard } from '@/components/repo/project-peek/ProjectPeekHoverCard'
+import { ProjectPeekPopover } from '@/components/repo/project-peek/ProjectPeekPopover'
 import { RepoMark } from '@/components/repo/RepoMark'
 import { Badge } from '@/components/ui/badge'
 import { AgentCommandFailedChip } from '@/components/agent-command-failure/AgentCommandFailedChip'
@@ -27,12 +27,13 @@ export function WorktreeCardRepoChip({
   const editorOpenRef = React.useRef(false)
   const handleEditorOpenChange = (open: boolean): void => {
     editorOpenRef.current = open
+    // The editor replaces the card details while it's open.
     if (open) {
       hover?.onPointerEnter()
     }
   }
   return (
-    <ProjectPeekHoverCard repo={repo} onOpenChange={handleEditorOpenChange}>
+    <ProjectPeekPopover repo={repo} onOpenChange={handleEditorOpenChange}>
       {/* Why: the name squeezed titles out of narrow cards; the mark is kept distinct per project instead. */}
       <button
         type="button"
@@ -41,15 +42,12 @@ export function WorktreeCardRepoChip({
           value0: repo.displayName
         })}
         data-worktree-card-identity-indicator=""
-        onPointerEnter={hover?.onPointerEnter}
-        // Why: the card activates on pointerdown; pressing the mark customizes it instead.
+        // Why: the card activates on pointerdown; pressing the mark opens its editor instead.
         onPointerDown={(event) => event.stopPropagation()}
-        // Why: resting here should open the project card, not re-arm the card details' rest intent.
-        onPointerMove={(event) => event.stopPropagation()}
-        onPointerLeave={(event) => {
-          // Why: crossing the card toward the open editor must not pop the card details over it.
-          if (!editorOpenRef.current) {
-            hover?.onPointerLeave(event)
+        onPointerMove={(event) => {
+          // Why: moving across the card toward the open editor must not pop the card details over it.
+          if (editorOpenRef.current) {
+            event.stopPropagation()
           }
         }}
         onKeyDown={(event) => {
@@ -62,7 +60,7 @@ export function WorktreeCardRepoChip({
       >
         <RepoMark repo={repo} />
       </button>
-    </ProjectPeekHoverCard>
+    </ProjectPeekPopover>
   )
 }
 

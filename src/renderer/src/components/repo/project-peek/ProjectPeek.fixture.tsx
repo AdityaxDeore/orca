@@ -1,7 +1,7 @@
 import type { Repo } from '../../../../../shared/repository/repo-types'
 import { defineFixture } from '../../../component-fixtures/component-fixture'
 import { RepoMark } from '../RepoMark'
-import { ProjectPeekHoverCard } from './ProjectPeekHoverCard'
+import { ProjectPeekPopover } from './ProjectPeekPopover'
 
 const avatar = {
   type: 'image',
@@ -99,26 +99,26 @@ const STORE = { repos: REPOS }
 function Peek({ repo }: { repo: Repo }): React.JSX.Element {
   return (
     <div className="h-[640px] p-3">
-      <ProjectPeekHoverCard repo={repo}>
-        <span tabIndex={0} data-testid="mark" className="inline-flex">
+      <ProjectPeekPopover repo={repo}>
+        <button type="button" data-testid="mark" className="inline-flex">
           <RepoMark repo={repo} />
-        </span>
-      </ProjectPeekHoverCard>
+        </button>
+      </ProjectPeekPopover>
     </div>
   )
 }
 
 const open = async (frame: HTMLElement): Promise<void> => {
-  frame.querySelector<HTMLElement>('[data-testid="mark"]')?.focus()
-  await new Promise((resolve) => setTimeout(resolve, 1200))
+  frame.querySelector<HTMLElement>('[data-testid="mark"]')?.click()
+  await new Promise((resolve) => setTimeout(resolve, 500))
 }
 
 const clickTile =
   (label: string) =>
   async (frame: HTMLElement): Promise<void> => {
-    await openEdit(frame)
+    await open(frame)
     document
-      .querySelector<HTMLElement>(`[data-slot="hover-card-content"] button[aria-label="${label}"]`)
+      .querySelector<HTMLElement>(`[data-slot="popover-content"] button[aria-label="${label}"]`)
       ?.click()
     await new Promise((resolve) => setTimeout(resolve, 1500))
   }
@@ -127,34 +127,19 @@ const clickTile =
 const clickTab =
   (name: string) =>
   async (frame: HTMLElement): Promise<void> => {
-    await openEdit(frame)
+    await open(frame)
     const tab = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-slot="hover-card-content"] [role="tab"]')
+      document.querySelectorAll<HTMLElement>('[data-slot="popover-content"] [role="tab"]')
     ).find((element) => element.textContent?.trim() === name)
     tab?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }))
     await new Promise((resolve) => setTimeout(resolve, 500))
   }
-
-const openEdit = async (frame: HTMLElement): Promise<void> => {
-  await open(frame)
-  document
-    .querySelector<HTMLElement>('[data-slot="hover-card-content"] button[aria-pressed]')
-    ?.click()
-  await new Promise((resolve) => setTimeout(resolve, 300))
-}
 
 export const github = defineFixture({
   width: 380,
   store: STORE,
   render: () => <Peek repo={githubRepo} />,
   interact: open
-})
-
-export const githubEdit = defineFixture({
-  width: 380,
-  store: STORE,
-  render: () => <Peek repo={githubRepo} />,
-  interact: openEdit
 })
 
 export const fork = defineFixture({
@@ -185,13 +170,6 @@ export const longEverything = defineFixture({
   interact: open
 })
 
-export const customColorEdit = defineFixture({
-  width: 380,
-  store: STORE,
-  render: () => <Peek repo={longRepo} />,
-  interact: openEdit
-})
-
 export const emojiSource = defineFixture({
   width: 380,
   store: STORE,
@@ -203,7 +181,7 @@ export const lettersEdit = defineFixture({
   width: 380,
   store: STORE,
   render: () => <Peek repo={lettersRepo} />,
-  interact: openEdit
+  interact: open
 })
 
 export const picturePanel = defineFixture({
