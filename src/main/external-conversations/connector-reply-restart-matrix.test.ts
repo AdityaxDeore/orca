@@ -801,7 +801,7 @@ describe('an empty turn is asked once more, from its live end only', () => {
     const p = start({ bot: true, retry: { posted: true, send: send('accepted') } })
     admit(p.db, 'm1', asked('d1'))
     p.show([p.message('m1'), ...p.turn('item:t1', 'm1', 'completed')])
-    await liveEnd(p, 'item:t1', 'm1', false)
+    await p.fillTurn({ ...solo, earlierProse: 'Posting it.', ...end('m1') })
     expect(asks).toHaveLength(0)
     expect(p.outcomes()).toEqual({ d1: { outcome: 'no_answer', head: 'd1' } })
   })
@@ -818,12 +818,12 @@ describe('an empty turn is asked once more, from its live end only', () => {
     })
   })
 
-  it('never asks for a turn that answered requests from more than its opener', async () => {
+  it('never asks for a turn that answered more than its opener; its earlier words answer', async () => {
     const p = asking('accepted')
     const both = ['d1', 'd2'].map((id, at) => (admit(p.db, `m${at + 1}`, asked(id)), stampOf(id)))
     p.show([p.message('m1'), p.message('m2'), ...p.turn('item:t1', 'm1', 'completed')])
-    await p.fillTurn({ ...ended, stamps: both, ...retryAskerOf(asked('d1'), both), ...end('m1') })
-    expect([asks.length, p.outcomes().d2?.outcome]).toEqual([0, 'no_answer'])
+    await p.fillTurn({ ...ended, stamps: both, earlierProse: 'Done.', ...end('m1') })
+    expect([asks.length, p.outcomes().d2?.prose]).toEqual([0, 'Done.'])
   })
 
   it('closes with one no answer at once when the ask is refused', async () => {

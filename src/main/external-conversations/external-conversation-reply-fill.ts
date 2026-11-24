@@ -25,6 +25,8 @@ export type EndedTurnReplies = {
   openerItemId?: string
   outcome: AgentJournalTurnOutcome
   prose: string
+  /** A bot's newest words before its last tool call: its answer when no retry asks again. */
+  earlierProse?: string
   /** A tool call ran inside the turn. */
   toolsRan?: boolean
   bot: boolean
@@ -68,7 +70,7 @@ export function conversationReplyFill(
   journal: () => ConnectorReplyJournal | null,
   filled: () => void,
   pause?: UsageLimitPause,
-  retry?: Pick<EmptyTurnRetry, 'hold'>
+  retry?: Pick<EmptyTurnRetry, 'hold' | 'posted'>
 ): ConversationReplyFill {
   return async (turn) => {
     const store = journal()
@@ -120,8 +122,11 @@ export function conversationReplyFill(
       return { covered, paused: false }
     }
     const fills: JournalConnectorReplyFill[] = []
+    // No retry asks again: words before the last tool answer, unless the chat posted its own.
+    const earlier = turn.prose || retry?.posted(turn) ? undefined : turn.earlierProse
+    const answered = earlier ? { ...turn, prose: earlier } : turn
     for (const row of own) {
-      const { outcome, prose } = connectorReplyTurnOutcome(turn)
+      const { outcome, prose } = connectorReplyTurnOutcome(answered)
       const conversation = JSON.stringify([row.account, row.conversation])
       const answerDeliveryId = answers.get(conversation) ?? row.deliveryId
       fills.push({

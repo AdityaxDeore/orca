@@ -37,6 +37,8 @@ export type EmptyRetrySend = (
 export type EmptyTurnRetry = {
   /** Holds an empty turn's rows for its one retry and sends it; false fills them as they are. */
   hold: (turn: EndedTurnReplies, own: readonly JournalConnectorReplyRow[]) => Promise<boolean>
+  /** The chat tried a post of its own during the live turn: its earlier words aren't its answer. */
+  posted: (turn: Pick<EndedTurnReplies, 'sessionId' | 'turnStartedAt'>) => boolean
   /** A row held for a retry not yet sent: recovery leaves it. */
   sending: (row: Pick<JournalConnectorReplyRow, 'account' | 'deliveryId'>) => boolean
 }
@@ -53,7 +55,10 @@ export function emptyTurnRetry(deps: {
   settled: (sessionId: string) => void
 }): EmptyTurnRetry {
   const sending = new Set<string>()
+  const posted = (turn: Pick<EndedTurnReplies, 'sessionId' | 'turnStartedAt'>) =>
+    turn.turnStartedAt !== undefined && deps.postedSince(turn.sessionId, turn.turnStartedAt)
   return {
+    posted,
     sending: (row) => sending.has(keyOf(row)),
     hold: async (turn, own) => {
       const store = deps.journal()
@@ -68,10 +73,7 @@ export function emptyTurnRetry(deps: {
       ) {
         return false
       }
-      if (
-        deps.postedSince(turn.sessionId, turn.turnStartedAt) ||
-        own.some((row) => row.emptyRetried)
-      ) {
+      if (posted(turn) || own.some((row) => row.emptyRetried)) {
         return false
       }
       const keys = own.map(keyOf)
