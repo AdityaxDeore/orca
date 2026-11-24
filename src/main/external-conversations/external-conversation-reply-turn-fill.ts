@@ -68,8 +68,9 @@ export async function fillRecoveredTurn(
   return { kind: 'unresolved', stamps: [] }
 }
 
-/** A recovered turn's words, as the live end reads them for a bot or another chat. */
+/** A recovered turn's words. No retry can ask a turn found at boot again, so a bot's words before its
+ *  last tool still answer when nothing came after them. */
 function turnReplyOf(items: AgentJournalSnapshot['items'], turnItemId: string, bot: boolean) {
   const { prose, botProse, toolsRan } = structuredAgentSessionTurnReply(items, turnItemId)
-  return { prose: bot ? botProse : prose, toolsRan, bot }
+  return { prose: bot ? botProse || prose : prose, toolsRan, bot }
 }

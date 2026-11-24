@@ -787,14 +787,14 @@ describe('an empty turn is asked once more, from its live end only', () => {
     expect(p.outcomes()).toEqual({ d1: { outcome: 'no_answer', head: 'd1', toolsRan: true } })
   })
 
-  it('never asks for a turn found at boot, whose words before its last tool are no answer', async () => {
+  it('never asks for a turn found at boot; its words before its last tool still answer', async () => {
     const p = asking('accepted')
     admit(p.db, 'm1', asked('d1'))
-    const said = p.turn('item:t1', 'm1', 'completed', 'Running it now.')
+    const said = p.turn('item:t1', 'm1', 'completed', 'Here it is.')
     p.show([p.message('m1'), ...said.slice(0, 1), tool('item:t1', 60), ...said.slice(1)])
     await p.recovery.boot()
     expect(asks).toHaveLength(0)
-    expect(p.outcomes()).toEqual({ d1: { outcome: 'no_answer', head: 'd1', toolsRan: true } })
+    expect(p.outcomes()).toEqual({ d1: { outcome: 'answered', prose: 'Here it is.', head: 'd1' } })
   })
 
   it('never asks when the chat tried a post of its own in the turn', async () => {
