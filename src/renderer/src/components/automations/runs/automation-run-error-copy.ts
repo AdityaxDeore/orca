@@ -4,7 +4,7 @@ import {
   type AutomationRunFailureCode
 } from '../../../../../shared/automations/history/automation-run-failure-copy'
 import type { AutomationRun } from '../../../../../shared/automations/history/automation-run'
-import { AGENT_SESSION_FAILURE_COPY } from '../../../../../shared/agent-session/failures/agent-session-failure-copy'
+import { readLegacyAutomationModelFailure } from '../../../../../shared/automations/history/automation-run-legacy-model-failure'
 import { tuiAgentDisplayName } from '../../../../../shared/agent-launch/catalog/tui-agent-display-names'
 
 // One whole sentence per non-ready setup state; unknown states keep the stored English.
@@ -183,45 +183,6 @@ function blockedAgentText(reason: string, agentLabel: string | undefined): strin
   }
 }
 
-function escapeRegExp(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-/** The Chat's model sentences, built from their own templates so a wording change can't slip past. */
-const LEGACY_MODEL_SENTENCES = (['modelUnavailable', 'modelUnavailableUpdate'] as const).map(
-  (id) => {
-    let agentSeen = false
-    const source = escapeRegExp(AGENT_SESSION_FAILURE_COPY[id]).replace(
-      /\\\{\\\{(\w+)\\\}\\\}/g,
-      (_match, name: string) => {
-        if (name === 'agent') {
-          const group = agentSeen ? '\\k<agent>' : '(?<agent>.+?)'
-          agentSeen = true
-          return group
-        }
-        return name === 'detail' ? '(?<model>.+?)' : '.+?'
-      }
-    )
-    return new RegExp(`^${source}$`)
-  }
-)
-
-/** Runs saved before the run kept a code stored the Chat's sentence, which tells the reader to
- *  send again; best effort, English only, since hosts saved it in English. */
-function legacyModelUnavailableText(error: string): string | null {
-  for (const sentence of LEGACY_MODEL_SENTENCES) {
-    const groups = sentence.exec(error)?.groups
-    if (groups) {
-      const { agent, model } = groups
-      return modelUnavailableText(
-        agent === AGENT_SESSION_FAILURE_COPY.theAgent ? undefined : agent,
-        model === AGENT_SESSION_FAILURE_COPY.selectedModel ? undefined : model
-      )
-    }
-  }
-  return null
-}
-
 /** Old records and older hosts omit the code; newer hosts may send unknown codes. Both show `error`. */
 export function automationRunErrorText(
   run: Pick<AutomationRun, 'error' | 'errorCode' | 'errorParams'>,
@@ -233,9 +194,11 @@ export function automationRunErrorText(
   }
   if (!isAutomationRunFailureCode(run.errorCode)) {
     const blocked = BLOCKED_AGENT_ERROR.exec(run.error)
-    return blocked
-      ? blockedAgentText(blocked[1], agentLabel)
-      : (legacyModelUnavailableText(run.error) ?? run.error)
+    if (blocked) {
+      return blockedAgentText(blocked[1], agentLabel)
+    }
+    const legacy = readLegacyAutomationModelFailure(run.error)
+    return legacy ? modelUnavailableText(legacy.agent, legacy.model) : run.error
   }
   return COPY[run.errorCode](run.errorParams) ?? run.error
 }

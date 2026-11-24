@@ -30,7 +30,7 @@ import { AutomationsPageFrame, AutomationsPageNoticeContext } from './Automation
 import { useAutomationsPageRouting } from './use-automations-page-routing'
 import { formatAutomationRunLabel } from './runs/automation-run-identity-label'
 import { automationRowHostLabel } from './listing/automation-list-host'
-import { createAutomationRunModelActions } from './runs/automation-run-model-actions'
+import { useAutomationRunModelActions } from './runs/automation-run-model-actions'
 
 export function AutomationsPageSurface({
   controller
@@ -158,7 +158,7 @@ export function AutomationsPageSurface({
     (selectedRecoveryHost.stableRef.selector.kind === 'ssh' ||
       selectedRecoveryHost.stableRef.authority.kind === 'runtime')
 
-  const modelActions = createAutomationRunModelActions(controller, bots)
+  const modelActions = useAutomationRunModelActions(controller, bots)
 
   const pendingNavigation = store.pendingAutomationRunNavigation
   const renderPage = (): React.ReactNode => {

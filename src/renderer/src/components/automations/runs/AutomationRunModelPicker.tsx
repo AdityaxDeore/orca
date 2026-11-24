@@ -1,5 +1,5 @@
 // The failure banner's model picker: the models the editor's Agent field offers for this agent.
-import React from 'react'
+import React, { useId } from 'react'
 import { useBotAgentMenu } from '@/components/bots/use-bot-agent-choices'
 import { useAgentLaunchPickerInventory } from '@/components/agent/use-agent-launch-picker-inventory'
 import {
@@ -15,7 +15,7 @@ import type { AgentPickerEntry } from '../../../../../shared/agent-launch/picker
 import type { Bot, BotAgent } from '../../../../../shared/bot-types'
 import { folderWorkspaceKey } from '../../../../../shared/workspace/identity/workspace-scope'
 
-export type AutomationRunModelOption = { id: string; label: string }
+import type { AutomationRunModelOption } from './automation-run-model-fix'
 
 /** What the picker lists, or null while it can't say (still reading, failed, or nothing offered):
  *  then the banner shows no picker and Edit is the way to change the model. */
@@ -54,7 +54,7 @@ function useAutomationRunModelOptions(
 
 export function AutomationRunModelSelect({
   options,
-  value,
+  failedModel,
   disabled,
   defaultOpen,
   onPick
@@ -62,43 +62,56 @@ export function AutomationRunModelSelect({
   options: readonly AutomationRunModelOption[]
   /** Fixtures show the list open. */
   defaultOpen?: boolean
-  /** The automation's saved model; none shows a placeholder. */
-  value: string | undefined
+  failedModel?: string
   disabled: boolean
-  onPick: (model: string) => void
+  onPick: (model: AutomationRunModelOption) => void
 }): React.JSX.Element {
   const t = useTranslate()
-  const listed = value === undefined || options.some((option) => option.id === value)
+  const nameId = useId()
+  const valueId = useId()
+  const failedLabel = options.find((option) => option.id === failedModel)?.label ?? failedModel
   return (
     <Select
-      value={value ?? ''}
+      value=""
       disabled={disabled}
       defaultOpen={defaultOpen}
       onValueChange={(next) => {
-        if (next && next !== value) {
-          onPick(next)
+        const option = options.find((candidate) => candidate.id === next)
+        if (option && next !== failedModel) {
+          onPick(option)
         }
       }}
     >
       <SelectTrigger
         size="xs"
-        aria-label={t('automations.runModelFix.model', 'Model')}
-        className="max-w-[45%] min-w-0 shrink-0 border-destructive/30 bg-background text-foreground dark:bg-background *:data-[slot=select-value]:block *:data-[slot=select-value]:truncate @max-[25rem]:max-w-[28%]"
+        aria-labelledby={`${nameId} ${valueId}`}
+        title={failedLabel}
+        className="max-w-[45%] min-w-36 shrink-0 border-destructive/30 bg-background text-foreground data-[placeholder]:text-foreground dark:bg-background *:data-[slot=select-value]:block *:data-[slot=select-value]:truncate"
       >
-        <SelectValue placeholder={t('automations.runModelFix.pickModel', 'Pick a model')} />
+        <span id={nameId} className="sr-only">
+          {t('automations.runModelFix.model', 'Model')}
+        </span>
+        <SelectValue
+          id={valueId}
+          placeholder={failedLabel ?? t('automations.runModelFix.pickModel', 'Pick a model')}
+        />
       </SelectTrigger>
       <SelectContent position="popper" side="bottom" align="end">
-        {/* A saved model the list no longer offers still shows as the current value. */}
-        {listed ? null : (
-          <SelectItem value={value} disabled>
-            {value}
+        {failedModel ? (
+          <SelectItem value={failedModel} disabled>
+            {failedLabel}
+            <span className="text-muted-foreground">
+              {t('automations.runModelFix.failed', 'Failed')}
+            </span>
           </SelectItem>
-        )}
-        {options.map((option) => (
-          <SelectItem key={option.id} value={option.id}>
-            {option.label}
-          </SelectItem>
-        ))}
+        ) : null}
+        {options
+          .filter((option) => option.id !== failedModel)
+          .map((option) => (
+            <SelectItem key={option.id} value={option.id}>
+              {option.label}
+            </SelectItem>
+          ))}
       </SelectContent>
     </Select>
   )
@@ -107,23 +120,27 @@ export function AutomationRunModelSelect({
 export function AutomationRunModelPicker({
   bot,
   agent,
-  savedModel,
+  failedModel,
   disabled,
+  renderNotice,
   onPick
 }: {
   bot: Pick<Bot, 'hostId' | 'folderWorkspaceId'>
   agent: BotAgent
-  savedModel: string | undefined
+  failedModel?: string
   disabled: boolean
-  onPick: (model: string) => void
-}): React.JSX.Element | null {
+  renderNotice: (picker?: React.ReactNode) => React.JSX.Element
+  onPick: (model: AutomationRunModelOption) => void
+}): React.JSX.Element {
   const options = useAutomationRunModelOptions(bot, agent)
-  return options ? (
-    <AutomationRunModelSelect
-      options={options}
-      value={savedModel}
-      disabled={disabled}
-      onPick={onPick}
-    />
-  ) : null
+  return renderNotice(
+    options?.some((option) => option.id !== failedModel) ? (
+      <AutomationRunModelSelect
+        options={options}
+        failedModel={failedModel}
+        disabled={disabled}
+        onPick={onPick}
+      />
+    ) : undefined
+  )
 }

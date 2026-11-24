@@ -23705,9 +23705,14 @@
       "model": "Modell",
       "pickModel": "Modell auswählen",
       "changed": "Diese Automatisierung wurde geändert, daher wurde das Modell nicht gespeichert. Ändere es über Bearbeiten.",
-      "saveFailed": "Das Modell konnte nicht gespeichert werden. Es wurde nichts erneut ausgeführt.",
       "rerunFailed": "Modell für diese Automatisierung auf {{model}} gesetzt, aber die erneute Ausführung wurde nicht gestartet.",
-      "saved": "Modell für diese Automatisierung auf {{model}} gesetzt."
+      "saved": "Modell für diese Automatisierung auf {{model}} gesetzt.",
+      "queuedWithNewerModel": "Der Lauf wurde mit dem aktuellen Modell der Automatisierung in die Warteschlange gestellt.",
+      "errorWithPicker": "{{agent}} konnte dieses Modell nicht verwenden.",
+      "failed": "Fehlgeschlagen",
+      "busy": "Das Modell wird bereits geändert.",
+      "rerunUnconfirmed": "Modell auf {{model}} gesetzt. Prüfe im Ausführungsverlauf, ob der neue Lauf gestartet wurde.",
+      "unconfirmed": "Die Modelländerung konnte nicht bestätigt werden. Prüfe die Automation, bevor du sie erneut ausführst."
     },
     "runPage": {
       "edit": "Bearbeiten",

@@ -36,7 +36,7 @@ import {
 } from './automation-run-identity-label'
 import { AutomationsPageFrame, AutomationsPageTitle } from '../AutomationsPageFrame'
 import type { Bot, BotAgent } from '../../../../../shared/bot-types'
-import { automationRunModelFix } from './automation-run-model-fix'
+import { automationRunModelFix, type AutomationRunModelOption } from './automation-run-model-fix'
 import { AutomationRunModelPicker } from './AutomationRunModelPicker'
 import { addAppKeyListener, removeAppKeyListener } from '@/lib/keyboard/app-keyboard-router'
 
@@ -81,7 +81,7 @@ export function AutomationRunDetailsPage({
   /** Opens the automation's editor. */
   onEdit?: () => void
   /** Saves `model` to the automation, then reruns it; settles once both are done or one failed. */
-  onPickModel?: (agent: BotAgent, model: string) => Promise<void>
+  onPickModel?: (model: AutomationRunModelOption) => Promise<void>
   /** Fixtures swap in a picker with fixed models; the host's menu reads live agents. */
   modelPicker?: typeof AutomationRunModelPicker
   onOpenWorkspace: () => void
@@ -124,19 +124,40 @@ export function AutomationRunDetailsPage({
   const needsCredentials = run.status === 'skipped_needs_interactive_auth'
   const [isModelFixPending, setIsModelFixPending] = useState(false)
   const modelFix = onPickModel ? automationRunModelFix({ run, automation, bot, canRerun }) : null
-  const modelPicker =
+  const renderFailureNotice = (action?: React.ReactNode, agent?: BotAgent) => (
+    <AutomationRunErrorNotice
+      action={action}
+      oneLine={Boolean(action)}
+      label={t('auto.components.automations.runIdentity.runFailed', 'Run failed.')}
+      error={
+        action && agent
+          ? t('automations.runModelFix.errorWithPicker', "{{agent}} couldn't use this model.", {
+              agent: getAgentLabel(agent)
+            })
+          : (errorText ??
+            t(
+              'auto.components.automations.runIdentity.noFailureReason',
+              'This run did not start, and no reason was recorded.'
+            ))
+      }
+    />
+  )
+  const failureNotice =
     modelFix && bot && onPickModel ? (
       <ModelPicker
         bot={bot}
         agent={modelFix.agent}
-        savedModel={modelFix.savedModel}
+        failedModel={modelFix.failedModel}
         disabled={isModelFixPending || isRerunPending}
+        renderNotice={(action) => renderFailureNotice(action, modelFix.agent)}
         onPick={(model) => {
           setIsModelFixPending(true)
-          void onPickModel(modelFix.agent, model).finally(() => setIsModelFixPending(false))
+          void onPickModel(model).finally(() => setIsModelFixPending(false))
         }}
       />
-    ) : null
+    ) : (
+      renderFailureNotice()
+    )
 
   const stepRef = useRef({ newer, older, onSelectRun })
   useEffect(() => {
@@ -329,18 +350,7 @@ export function AutomationRunDetailsPage({
             ) : null}
           </div>
         ) : failed ? (
-          <AutomationRunErrorNotice
-            action={modelPicker}
-            oneLine={modelPicker !== null}
-            label={t('auto.components.automations.runIdentity.runFailed', 'Run failed.')}
-            error={
-              errorText ??
-              t(
-                'auto.components.automations.runIdentity.noFailureReason',
-                'This run did not start, and no reason was recorded.'
-              )
-            }
-          />
+          failureNotice
         ) : null}
 
         <AutomationRunToolbar

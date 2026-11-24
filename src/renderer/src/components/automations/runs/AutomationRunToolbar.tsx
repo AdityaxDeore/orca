@@ -33,11 +33,7 @@ export function AutomationRunToolbar({
         </Button>
       ) : null}
       {onRerun ? (
-        <AutomationRunRerunButton
-          pending={isRerunPending}
-          disabled={isModelFixPending}
-          onRerun={onRerun}
-        />
+        <AutomationRunRerunButton pending={isRerunPending || isModelFixPending} onRerun={onRerun} />
       ) : null}
       {onEdit ? (
         <>

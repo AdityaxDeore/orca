@@ -27070,9 +27070,14 @@
       "model": "Model",
       "pickModel": "Pick a model",
       "changed": "This automation changed, so the model wasn't saved. Use Edit to change it.",
-      "saveFailed": "Couldn't save the model. Nothing was rerun.",
       "rerunFailed": "Model set to {{model}} for this automation, but the rerun didn’t start.",
-      "saved": "Model set to {{model}} for this automation."
+      "saved": "Model set to {{model}} for this automation.",
+      "queuedWithNewerModel": "Run queued with the automation's latest model.",
+      "errorWithPicker": "{{agent}} couldn't use this model.",
+      "failed": "Failed",
+      "busy": "A model change is already in progress.",
+      "rerunUnconfirmed": "Model set to {{model}}. Check the run history to see if the rerun started.",
+      "unconfirmed": "Couldn't confirm the model change. Check the automation before rerunning."
     },
     "runPage": {
       "edit": "Edit",

@@ -5,11 +5,9 @@ import { cn } from '@/lib/class-names'
 
 export function AutomationRunRerunButton({
   pending,
-  disabled,
   onRerun
 }: {
   pending: boolean
-  disabled: boolean
   onRerun: () => void
 }): React.JSX.Element {
   const t = useTranslate()
@@ -19,7 +17,7 @@ export function AutomationRunRerunButton({
       variant="outline"
       size="sm"
       className="shrink-0"
-      disabled={pending || disabled}
+      disabled={pending}
       aria-busy={pending || undefined}
       onClick={onRerun}
     >

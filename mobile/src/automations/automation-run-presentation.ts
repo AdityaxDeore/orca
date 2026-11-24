@@ -1,3 +1,4 @@
+import { readLegacyAutomationModelFailure } from '../../../src/shared/automations/history/automation-run-legacy-model-failure'
 import {
   AUTOMATION_RUN_FAILURE_COPY as EN,
   type AutomationRunFailureCode
@@ -161,12 +162,15 @@ const COPY: Record<
   agentModelUnavailable: (params) => {
     const agent = typeof params?.agent === 'string' ? tuiAgentDisplayName(params.agent) : null
     const model = typeof params?.model === 'string' && params.model ? params.model : null
-    // A newer host's agent this build doesn't know is "The agent", never its raw id.
-    return translate('automations.runFailures.agentModelUnavailable', EN.agentModelUnavailable, {
-      agent: agent ?? translate('automations.runFailures.theAgent', EN.theAgent),
-      model: model ?? translate('automations.runFailures.selectedModel', EN.selectedModel)
-    })
+    return modelUnavailableText(agent, model)
   }
+}
+
+function modelUnavailableText(agent?: string | null, model?: string | null): string {
+  return translate('automations.runFailures.agentModelUnavailable', EN.agentModelUnavailable, {
+    agent: agent ?? translate('automations.runFailures.theAgent', EN.theAgent),
+    model: model ?? translate('automations.runFailures.selectedModel', EN.selectedModel)
+  })
 }
 
 function isAutomationRunFailureCode(code: unknown): code is AutomationRunFailureCode {
@@ -177,8 +181,12 @@ function isAutomationRunFailureCode(code: unknown): code is AutomationRunFailure
 export function automationRunErrorText(
   run: Pick<MobileAutomationRun, 'error' | 'errorCode' | 'errorParams'>
 ): string | null {
-  if (run.error === null || !isAutomationRunFailureCode(run.errorCode)) {
-    return run.error
+  if (run.error === null) {
+    return null
+  }
+  if (!isAutomationRunFailureCode(run.errorCode)) {
+    const legacy = readLegacyAutomationModelFailure(run.error)
+    return legacy ? modelUnavailableText(legacy.agent, legacy.model) : run.error
   }
   return COPY[run.errorCode](run.errorParams) ?? run.error
 }

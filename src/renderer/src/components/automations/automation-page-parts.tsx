@@ -139,18 +139,20 @@ export function AutomationRunErrorNotice({
 }): React.JSX.Element {
   return (
     <div
-      role="alert"
+      role={oneLine ? undefined : 'alert'}
       className={cn(
         'flex items-center gap-x-3 gap-y-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive',
-        oneLine ? 'flex-nowrap @max-[25rem]:gap-x-2 @max-[25rem]:text-xs' : 'flex-wrap',
+        oneLine ? 'flex-nowrap @max-[25rem]:gap-x-2' : 'flex-wrap',
         className
       )}
     >
       <span
+        role={oneLine ? 'alert' : undefined}
         className={cn('min-w-0 flex-1', oneLine && 'truncate')}
         title={oneLine ? `${label} ${error}` : undefined}
       >
-        <span className="font-medium">{label}</span> {error}
+        <span className="font-medium">{label}</span>{' '}
+        <span className={oneLine ? '@max-[25rem]:sr-only' : undefined}>{error}</span>
       </span>
       {action}
     </div>

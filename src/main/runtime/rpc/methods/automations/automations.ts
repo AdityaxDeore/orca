@@ -11,6 +11,7 @@ import {
   AutomationRuns,
   AutomationUpdate
 } from '../../../../../shared/rpc-contract/automations/automation-params'
+import { AutomationRecoverModel } from '../../../../../shared/rpc-contract/automations/automation-model-recovery-param'
 import { recordAutomationSavedCard } from '../../../automation-saved-card'
 import { deleteAutomationRecordingCancelledWait } from '../../../../bots/bot-wait-cancel'
 import { LOOK_AROUND_REFUSAL } from '../../../../bots/bot-look-around-policy'
@@ -167,6 +168,18 @@ export const AUTOMATION_METHODS = [
         mutationOwner(params.id, params.expectedOwner, context)
       )
     })
+  }),
+  defineMethod({
+    name: 'automation.recoverModel',
+    permission: 'workspace',
+    params: AutomationRecoverModel,
+    handler: (params, context) => {
+      refuseFromLookAround(params.callerSessionId, context)
+      return context.runtime.recoverAutomationModel(
+        params,
+        mutationOwner(params.id, params.expectedOwner, context)
+      )
+    }
   }),
   defineMethod({
     name: 'automation.runs',

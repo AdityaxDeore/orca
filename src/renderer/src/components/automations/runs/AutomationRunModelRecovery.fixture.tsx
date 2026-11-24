@@ -1,27 +1,28 @@
 import { useState } from 'react'
+import { Toaster } from '@/components/ui/sonner'
+import { stampBotHost } from '@/lib/bot-catalog-snapshot'
 import { defineFixture } from '../../../component-fixtures/component-fixture'
 import type { AutomationRun } from '../../../../../shared/automations/history/automation-run'
 import type { Bot } from '../../../../../shared/bot-types'
-import { toRuntimeExecutionHostId } from '../../../../../shared/execution-host/execution-host'
 import { makeAutomation, makeRun } from '../automations-page-fixtures'
 import { AutomationEditorDialog } from '../authoring/AutomationEditorDialog'
 import { buildAutomationEditDraft } from '../authoring/automation-edit-draft'
 import { AutomationRunDetailsPage } from './AutomationRunDetailsPage'
 import { AutomationRunModelSelect, type AutomationRunModelPicker } from './AutomationRunModelPicker'
-import { botTargetWithModel, fixAutomationRunModel } from './automation-run-model-fix'
+import { showAutomationModelRecoveryResult } from './automation-run-model-fix'
 import type { SelectedAutomationRunHistoryOutcome } from './use-selected-automation-run-history'
 
 const NOW = Date.UTC(2026, 10, 20, 19, 0)
 const HOUR = 60 * 60 * 1000
 const noop = (): void => {}
 
-// A bot automation whose run could not use its model: fix it from the banner, or Edit.
+const fixtureTarget = { botId: 'bot-1', runsIn: 'new', resultsTo: 'chat' } as const
 const botAutomation = makeAutomation({
   id: 'a-2',
   name: 'Weekly digest',
   prompt: 'Summarize this week’s sample notes.',
   agentId: 'codex',
-  bot: { botId: 'bot-1', runsIn: 'new', resultsTo: 'chat' }
+  bot: fixtureTarget
 })
 const fixtureBot: Bot = {
   id: 'bot-1',
@@ -42,6 +43,7 @@ const fixtureBot: Bot = {
   createdAt: 1,
   updatedAt: 1
 }
+const remoteFixtureBot = stampBotHost('runtime:sample-runtime', fixtureBot)
 const MODELS = [
   { id: 'model-alpha-preview-long-name', label: 'model-alpha-preview-long-name' },
   { id: 'model-beta', label: 'Model Beta' },
@@ -100,21 +102,24 @@ const scenarios: Record<string, AutomationRun> = {
 }
 
 function fixedPicker(open: boolean, options = MODELS): typeof AutomationRunModelPicker {
-  return function FixedPicker({ savedModel, disabled, onPick }) {
-    return (
-      <AutomationRunModelSelect
-        options={options}
-        value={savedModel}
-        disabled={disabled}
-        defaultOpen={open}
-        onPick={onPick}
-      />
+  return function FixedPicker({ failedModel, disabled, onPick, renderNotice }) {
+    return renderNotice(
+      options.length ? (
+        <AutomationRunModelSelect
+          options={options}
+          failedModel={failedModel}
+          disabled={disabled}
+          defaultOpen={open}
+          onPick={onPick}
+        />
+      ) : undefined
     )
   }
 }
 
 const closedPicker = fixedPicker(false)
 const openPicker = fixedPicker(true)
+const emptyPicker = fixedPicker(false, [])
 const longPicker = fixedPicker(false, [
   ...MODELS,
   ...Array.from({ length: 20 }, (_, index) => ({
@@ -126,27 +131,26 @@ const longPicker = fixedPicker(false, [
 function RunRecovery({
   initialRun,
   open,
-  remote
+  remote,
+  empty
 }: {
   initialRun: AutomationRun
   open: boolean
   remote: boolean
+  empty: boolean
 }) {
   const [run, setRun] = useState(initialRun)
-  const [automation, setAutomation] = useState(() => {
-    const target = botAutomation.bot
-    const saved =
-      initialRun === scenarios.afterPick && target
-        ? botTargetWithModel(target, fixtureBot, 'codex', 'model-beta')
-        : null
-    return saved ? { ...botAutomation, bot: saved } : botAutomation
-  })
+  const [model, setModel] = useState(initialRun === scenarios.afterPick ? 'model-beta' : null)
+  const automation = model
+    ? {
+        ...botAutomation,
+        bot: { ...fixtureTarget, agentSetup: { agent: fixtureBot.agent, launch: { model } } }
+      }
+    : botAutomation
   const [draft, setDraft] = useState(() => buildAutomationEditDraft(botAutomation))
   const [editorOpen, setEditorOpen] = useState(false)
   const [workspaceOpened, setWorkspaceOpened] = useState(false)
-  const bot = remote
-    ? { ...fixtureBot, hostId: toRuntimeExecutionHostId('sample-runtime') }
-    : fixtureBot
+  const bot = remote ? remoteFixtureBot : fixtureBot
   const history: SelectedAutomationRunHistoryOutcome = {
     automationId: botAutomation.id,
     rowKey: null,
@@ -177,31 +181,21 @@ function RunRecovery({
           setDraft(buildAutomationEditDraft(automation))
           setEditorOpen(true)
         }}
-        onPickModel={(agent, model) =>
-          fixAutomationRunModel(
-            {
-              reread: async () => automation,
-              bot: () => bot,
-              save: async (target) => {
-                if (remote) {
-                  await new Promise((resolve) => setTimeout(resolve, 150))
-                }
-                setAutomation({ ...automation, bot: target })
-                return true
-              },
-              rerun: async () => scenarios.afterPick.id,
-              showRun: () => setRun(scenarios.afterPick),
-              notify: { success: noop, error: noop }
-            },
-            agent,
-            model
-          )
-        }
-        modelPicker={remote ? longPicker : open ? openPicker : closedPicker}
+        onPickModel={async (option) => {
+          if (remote) {
+            await new Promise((resolve) => setTimeout(resolve, 2000))
+          }
+          setModel(option.id)
+          const run = scenarios.afterPick
+          setRun(run)
+          showAutomationModelRecoveryResult({ status: 'queued', runId: run.id }, option.label)
+        }}
+        modelPicker={empty ? emptyPicker : remote ? longPicker : open ? openPicker : closedPicker}
         onOpenWorkspace={() => setWorkspaceOpened(true)}
         onReviewSetup={noop}
         onSelectRun={noop}
       />
+      <Toaster />
       {workspaceOpened ? <p role="status">Sample workspace opened</p> : null}
       {editorOpen ? (
         <AutomationEditorDialog
@@ -230,8 +224,8 @@ function RunRecovery({
   )
 }
 
-function renderBotRun(run: AutomationRun, open = false, remote = false) {
-  return <RunRecovery initialRun={run} open={open} remote={remote} />
+function renderBotRun(run: AutomationRun, open = false, remote = false, empty = false) {
+  return <RunRecovery initialRun={run} open={open} remote={remote} empty={empty} />
 }
 
 export const modelFailed360 = defineFixture({
@@ -297,4 +291,8 @@ export const afterPick720 = defineFixture({
 export const remoteModelFailed360 = defineFixture({
   width: 360,
   render: () => renderBotRun(scenarios.modelFailed, false, true)
+})
+export const noCatalog360 = defineFixture({
+  width: 360,
+  render: () => renderBotRun(scenarios.modelFailed, false, false, true)
 })

@@ -12,6 +12,10 @@ import type {
   AutomationRunsPage
 } from '../../../../../shared/automations/history/automation-run'
 import type {
+  AutomationModelRecoveryInput,
+  AutomationModelRecoveryResult
+} from '../../../../../shared/automations/history/automation-model-recovery'
+import type {
   AutomationListResult,
   AutomationListScopeSelector
 } from '../../../../../shared/automations/ownership/automation-list-scope'
@@ -306,6 +310,17 @@ export async function runAutomationNowForOwner(
     expectedOwner
   })
   return result.run
+}
+
+export async function recoverAutomationModelForOwner(
+  owner: AutomationOwnerRef,
+  input: AutomationModelRecoveryInput
+): Promise<AutomationModelRecoveryResult> {
+  await assertOwnerFencingSupported(owner.authority)
+  return callAuthority(owner.authority, 'automation.recoverModel', {
+    ...input,
+    expectedOwner: ownerPrecondition(owner)
+  })
 }
 
 export async function createAutomationForDestination(

@@ -129,15 +129,10 @@ export function createAutomationRunActions({
     )
   }
 
-  /** The new run's id once its host started it; null when it didn't. */
-  const rerunAutomationRun = async (
-    row: AutomationListRow,
-    run: AutomationRun,
-    { showToast = true }: { showToast?: boolean } = {}
-  ): Promise<string | null> => {
+  const rerunAutomationRun = async (row: AutomationListRow, run: AutomationRun): Promise<void> => {
     const runId = run.id
     if (rerunRunIdsInFlightRef.current.has(runId)) {
-      return null
+      return
     }
     const pendingStartedAt = Date.now()
     rerunRunIdsInFlightRef.current.add(runId)
@@ -151,33 +146,27 @@ export function createAutomationRunActions({
       reportOwnerAction(row.key, result.ok ? null : result.notice)
       if (!result.ok) {
         await pageRefresh.refresh()
-        return null
+        return
       }
       invalidateRowHost(row.key, 'run')
       await pageRefresh.hydratePersistedUIState()
       await pageRefresh.refresh()
-      if (showToast) {
-        toast.message(
-          translate(
-            'auto.components.automations.AutomationsPage.a1bdb57008',
-            'Automation run queued.'
-          )
+      toast.message(
+        translate(
+          'auto.components.automations.AutomationsPage.a1bdb57008',
+          'Automation run queued.'
         )
-      }
-      return result.value?.id ?? null
+      )
     } catch (error) {
-      if (showToast) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : translate(
-                'auto.components.automations.AutomationsPage.3a4c476aa0',
-                'Failed to rerun automation.'
-              )
-        )
-      }
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : translate(
+              'auto.components.automations.AutomationsPage.3a4c476aa0',
+              'Failed to rerun automation.'
+            )
+      )
       await pageRefresh.refresh()
-      return null
     } finally {
       await waitForAutomationRerunPendingVisibility(pendingStartedAt)
       rerunRunIdsInFlightRef.current.delete(runId)

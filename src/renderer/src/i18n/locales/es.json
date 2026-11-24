@@ -24179,9 +24179,14 @@
       "model": "Modelo",
       "pickModel": "Elige un modelo",
       "changed": "Esta automatización cambió, así que no se guardó el modelo. Usa Editar para cambiarlo.",
-      "saveFailed": "No se pudo guardar el modelo. No se volvió a ejecutar nada.",
       "rerunFailed": "Modelo establecido en {{model}} para esta automatización, pero la nueva ejecución no se inició.",
-      "saved": "Modelo establecido en {{model}} para esta automatización."
+      "saved": "Modelo establecido en {{model}} para esta automatización.",
+      "queuedWithNewerModel": "La ejecución se puso en cola con el modelo más reciente de la automatización.",
+      "errorWithPicker": "{{agent}} no pudo usar este modelo.",
+      "failed": "Fallido",
+      "busy": "Ya hay un cambio de modelo en curso.",
+      "rerunUnconfirmed": "El modelo se cambió a {{model}}. Consulta el historial para ver si se inició la nueva ejecución.",
+      "unconfirmed": "No se pudo confirmar el cambio de modelo. Revisa la automatización antes de volver a ejecutarla."
     },
     "runPage": {
       "edit": "Editar",

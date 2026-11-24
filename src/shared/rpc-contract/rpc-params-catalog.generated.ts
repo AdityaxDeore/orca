@@ -131,6 +131,7 @@ import {
   SourceRequest,
   WriteRequest
 } from './artifacts/artifacts-params'
+import { AutomationRecoverModel } from './automations/automation-model-recovery-param'
 import {
   AutomationCreate,
   AutomationId,
@@ -1232,6 +1233,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'automation.create': AutomationCreate,
   'automation.delete': AutomationId,
   'automation.list': AutomationList,
+  'automation.recoverModel': AutomationRecoverModel,
   'automation.runNow': AutomationId,
   'automation.runs': AutomationRuns,
   'automation.show': AutomationId,

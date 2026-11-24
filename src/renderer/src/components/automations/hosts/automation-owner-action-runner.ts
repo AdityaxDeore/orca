@@ -5,6 +5,7 @@ import type {
   AutomationCreateInput,
   AutomationUpdateInput
 } from '../../../../../shared/automations/automation-definition'
+import type { AutomationModelRecoveryInput } from '../../../../../shared/automations/history/automation-model-recovery'
 import type {
   AutomationRun,
   AutomationRunsPage
@@ -38,6 +39,7 @@ import {
   listOrphanAutomationRuns,
   listOrphanAutomationRunsPage,
   runAutomationNowForOwner,
+  recoverAutomationModelForOwner,
   updateAutomationForOwner,
   updateOrphanAutomation
 } from './automation-scoped-list-client'
@@ -189,6 +191,13 @@ export async function runOwnedAutomationNow(
   id: string
 ): Promise<AutomationActionResult<AutomationRun>> {
   return await attempt(availability, (owner) => runAutomationNowForOwner(owner, id))
+}
+
+export function recoverOwnedAutomationModel(
+  availability: AutomationActionAvailability,
+  input: AutomationModelRecoveryInput
+) {
+  return attempt(availability, (owner) => recoverAutomationModelForOwner(owner, input))
 }
 
 /** Re-read edit data within its captured scope so a moved row cannot silently become another authority’s same-ID record. */
