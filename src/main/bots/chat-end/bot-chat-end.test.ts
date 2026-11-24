@@ -5,6 +5,7 @@ import {
   COORDINATOR,
   PEER_CHAT,
   WAIT,
+  call,
   coordinatorRunAndTask,
   db,
   host,
@@ -134,6 +135,46 @@ describe('ending a bot side chat', () => {
     expect(await end()).toEqual({ outcome: 'kept', reasons: [{ kind: 'unread', count: 1 }] })
     expect(host.deps.store.isSessionInBackground(SIDE)).toBe(true)
     expect(host.deps.store.isSessionEnded(SIDE)).toBe(false)
+  })
+
+  it('keeps a chat while a plain question it sent, or one it read, waits for its answer', async () => {
+    await openBotChat(SIDE, 'background')
+    const PEER_ADDRESS = `${ORCA_SESSION_ADDRESS_PREFIX}${PEER_CHAT}`
+    const sent = await call(
+      'orchestration.send',
+      { to: PEER_ADDRESS, subject: 'Which branch?', type: 'question' },
+      { sessionId: SIDE }
+    )
+    expect(await end()).toEqual({ outcome: 'kept', reasons: [{ kind: 'questions', count: 1 }] })
+
+    const asked = await call(
+      'orchestration.send',
+      { to: SIDE_ADDRESS, subject: 'Ready?', type: 'question' },
+      { sessionId: PEER_CHAT }
+    )
+    db.markAsRead([String((asked.message as { id: string }).id)])
+    expect(await end()).toEqual({
+      outcome: 'kept',
+      reasons: [
+        { kind: 'requests', count: 1 },
+        { kind: 'questions', count: 1 }
+      ]
+    })
+
+    // Both answered in their threads, and the answer read: nothing is owed.
+    await call(
+      'orchestration.reply',
+      { id: String((sent.message as { id: string }).id), body: 'main' },
+      { sessionId: PEER_CHAT }
+    )
+    const answer = await call(
+      'orchestration.reply',
+      { id: String((asked.message as { id: string }).id), body: 'yes' },
+      { sessionId: SIDE }
+    )
+    db.markAsRead(db.getUndeliveredUnreadMessages(SIDE_ADDRESS, undefined, {}).map((m) => m.id))
+    expect(answer).toBeDefined()
+    expect(await end()).toEqual({ outcome: 'ended', title: null })
   })
 
   it('keeps a chat that ran workers, and never stops its agent', async () => {

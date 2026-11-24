@@ -69,4 +69,12 @@ describe("a chat tab's showing", () => {
     noteChatTabShowings(snapshot(1, [{ sessionId: 'a', showing: 'there' }]), HOST)
     expect(chatTabShowing({ kind: 'local' }, 'wt', 'a')).toBeNull()
   })
+
+  it('names nothing for a host that never sends names, so its chats keep the plain close', () => {
+    const older = { kind: 'environment', environmentId: 'older-server' } as const
+    noteChatTabShowings(snapshot(1, [{ sessionId: 'a' }, { sessionId: 'b' }]), older)
+    noteChatTabShowings(snapshot(2, [{ sessionId: 'a' }]), older)
+    expect(chatTabShowing(older, 'wt', 'a')).toBeNull()
+    expect(chatTabShowing(older, 'wt', 'b')).toBeNull()
+  })
 })

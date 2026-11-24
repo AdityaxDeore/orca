@@ -3,9 +3,9 @@ import type {
   AutomationRun,
   AutomationRunStatus
 } from '../../../shared/automations/history/automation-run'
-import { listActiveAutomationRuns } from './automation-active-runs'
+import { listActiveAutomationRunsInto } from './automation-active-runs'
 
-function run(id: string, status: AutomationRunStatus): AutomationRun {
+function run(id: string, status: AutomationRunStatus, chatSessionId = 'chat-1'): AutomationRun {
   return {
     id,
     automationId: 'automation-1',
@@ -16,7 +16,7 @@ function run(id: string, status: AutomationRunStatus): AutomationRun {
     workspaceId: 'wt',
     workspaceDisplayName: 'wt',
     sessionKind: 'chat',
-    chatSessionId: 'chat-1',
+    chatSessionId,
     terminalSessionId: null,
     terminalPaneKey: null,
     terminalPtyId: null,
@@ -32,15 +32,24 @@ function run(id: string, status: AutomationRunStatus): AutomationRun {
 }
 
 describe('runs not yet final', () => {
-  it('walks a run history once, and again only once it is replaced', () => {
-    const state = { automationRuns: [run('done', 'completed'), run('going', 'dispatched')] }
-    const first = listActiveAutomationRuns(state)
-    expect(first.map(({ id }) => id)).toEqual(['going'])
-    expect(listActiveAutomationRuns(state)).toBe(first)
+  it('reads only the named chats, from one walk per run history', () => {
+    const state = {
+      automationRuns: [
+        run('done', 'completed'),
+        run('going', 'dispatched'),
+        run('elsewhere', 'dispatched', 'chat-2')
+      ]
+    }
+    expect(listActiveAutomationRunsInto(state, ['chat-1']).map(({ id }) => id)).toEqual(['going'])
+    expect(listActiveAutomationRunsInto(state, ['chat-3'])).toEqual([])
 
+    // A mutation replaces the array, so the next read sees it.
     state.automationRuns = state.automationRuns.map((entry) =>
       entry.id === 'going' ? { ...entry, status: 'completed' as const } : entry
     )
-    expect(listActiveAutomationRuns(state)).toEqual([])
+    expect(listActiveAutomationRunsInto(state, ['chat-1'])).toEqual([])
+    expect(listActiveAutomationRunsInto(state, ['chat-2']).map(({ id }) => id)).toEqual([
+      'elsewhere'
+    ])
   })
 })

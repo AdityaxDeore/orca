@@ -108,6 +108,12 @@ export class AgentSessionTabTable {
     this.setEnded(sessionId, true)
   }
 
+  /** The chat's record is gone: drop every trace of it here too, the ended mark included. */
+  forget(sessionId: string): void {
+    this.hide(sessionId)
+    this.setEnded(sessionId, false)
+  }
+
   isInBackground(sessionId: string): boolean {
     return this.background.has(sessionId)
   }

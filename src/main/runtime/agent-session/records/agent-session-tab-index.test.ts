@@ -85,3 +85,14 @@ describe('AgentSessionTabTable ended chats across a write', () => {
     })
   })
 })
+
+describe('AgentSessionTabTable forgetting a chat', () => {
+  it('drops its ended mark with its record, and writes that as a removal', () => {
+    const published = new AgentSessionTabTable([], [], ['gone', 'kept'])
+    const draft = published.clone()
+    draft.forget('gone')
+    expect(draft.isEnded('gone')).toBe(false)
+    expect(draft.endedSessionIds()).toEqual(['kept'])
+    expect(draft.endedChangesSince(published)).toEqual({ add: [], remove: ['gone'] })
+  })
+})

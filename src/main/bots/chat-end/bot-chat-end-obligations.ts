@@ -13,8 +13,10 @@ export type BotChatEndObligationSources = {
   db: OrchestrationDb
   /** The bot's automations, read from memory. */
   automations: () => readonly Pick<Automation, 'id' | 'name' | 'bot'>[]
-  /** Every run not yet final (retention never prunes those), read without the run history. */
-  activeRuns: () => readonly Pick<AutomationRun, 'automationId' | 'chatSessionId'>[]
+  /** Runs not yet final into the named chats (retention never prunes those), from an index by chat. */
+  activeRunsInto: (
+    chatSessionIds: readonly string[]
+  ) => readonly Pick<AutomationRun, 'automationId' | 'chatSessionId'>[]
   /** A connector delivery is being sent to, or waits on, this session's turn. */
   deliveryPending: (sessionId: string) => boolean
 }
@@ -85,6 +87,29 @@ function openQuestions(db: OrchestrationDb, ids: readonly string[], addresses: r
   }
 }
 
+/** Point-to-point questions with no bot request behind them that the other side never answered in
+ *  their thread: read ones to the chat (unread ones count as unread), and ones it sent. */
+function plainQuestions(db: OrchestrationDb, addresses: readonly string[]) {
+  const a = placeholders(addresses)
+  const open = (column: 'to_handle' | 'from_handle', extra: string, answerer: string) =>
+    count(
+      db,
+      `SELECT COUNT(*) AS n FROM messages m
+       WHERE m.${column} IN (${a}) ${extra} AND m.type = 'question'
+         AND NOT EXISTS (SELECT 1 FROM bot_requests r WHERE r.message_id = m.id)
+         AND NOT EXISTS (
+           SELECT 1 FROM messages x
+            WHERE x.thread_id = COALESCE(m.thread_id, m.id) AND x.id <> m.id
+              AND x.from_handle = ${answerer}
+         )`,
+      addresses
+    )
+  return {
+    askedOf: open('to_handle', 'AND m.read = 1', 'm.to_handle'),
+    askedBy: open('from_handle', "AND m.type <> 'heartbeat'", 'm.to_handle')
+  }
+}
+
 function mailReasons(db: OrchestrationDb, ids: readonly string[]): BotChatEndReason[] {
   const addresses = ids.flatMap((id) => (isOrcaSessionId(id) ? [formatOrcaSessionAddress(id)] : []))
   const a = placeholders(addresses)
@@ -114,12 +139,14 @@ function mailReasons(db: OrchestrationDb, ids: readonly string[]): BotChatEndRea
       addresses
     )
   const questions = openQuestions(db, ids, addresses)
+  const plain = plainQuestions(db, addresses)
   // Unread ones are counted above; a read status asks nothing.
-  const asked = unanswered('to_handle', 'AND m.read = 1') + questions.askedOf
+  const asked = unanswered('to_handle', 'AND m.read = 1') + questions.askedOf + plain.askedOf
   if (asked > 0) {
     reasons.push({ kind: 'requests', count: asked })
   }
-  const waiting = unanswered('from_handle', "AND m.type <> 'heartbeat'") + questions.askedBy
+  const waiting =
+    unanswered('from_handle', "AND m.type <> 'heartbeat'") + questions.askedBy + plain.askedBy
   if (waiting > 0) {
     reasons.push({ kind: 'questions', count: waiting })
   }
@@ -139,14 +166,7 @@ function automationReasons(
     .filter((automation) => ids.includes(automation.bot?.chat?.sessionId ?? ''))
     .map((automation) => ({ kind: 'automation', name: automation.name }))
   const ownIds = new Set(own.map((automation) => automation.id))
-  const going = sources
-    .activeRuns()
-    .some(
-      (run) =>
-        ownIds.has(run.automationId) &&
-        run.chatSessionId !== null &&
-        ids.includes(run.chatSessionId)
-    )
+  const going = sources.activeRunsInto(ids).some((run) => ownIds.has(run.automationId))
   return going ? [...reasons, { kind: 'automation-run' }] : reasons
 }
 

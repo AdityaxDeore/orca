@@ -31,7 +31,7 @@ function owes(
     {
       db,
       automations: () => automations,
-      activeRuns: () => activeRuns,
+      activeRunsInto: (ids) => activeRuns.filter((run) => ids.includes(run.chatSessionId ?? '')),
       deliveryPending: () => false
     },
     'bot-1',
