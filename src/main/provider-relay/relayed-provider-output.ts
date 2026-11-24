@@ -40,6 +40,10 @@ type OutputOptions = {
 export class RelayedProviderOutput {
   /** The agent's answer to the first client's `initialize`, when the relay was reattached. */
   initializeLine: string | null = null
+  /** Lines the daemon kept for this attach (session state long since acked), by seq. */
+  readonly keptLines = new Map<number, string>()
+  /** Once read, a later attach's kept lines (after a dropped stream) are not held again. */
+  private keptLinesRead = false
   /** Highest data seq handed on or held; spool lines at or below it are already seen. */
   private deliveredSeq = 0
   /** Highest data seq actually handed on; the next attach and every ack start here. */
@@ -77,6 +81,7 @@ export class RelayedProviderOutput {
       this.held = []
       this.releasedTo = 0
     }
+    this.keptLines.clear()
     this.deliveredSeq = this.pushedSeq
     return this.pushedSeq
   }
@@ -87,6 +92,14 @@ export class RelayedProviderOutput {
     }
     if (event === 'relayInitialize') {
       this.initializeLine = line
+      return
+    }
+    // Only an attach whose output is held for its consumer reads kept lines: a fresh spawn's
+    // re-sent ones after a dropped stream are never read, so never held.
+    if (event === 'relayKept') {
+      if (this.wantsKeptLines) {
+        this.keptLines.set(seq, line)
+      }
       return
     }
     if (event === 'relayPending') {
@@ -106,6 +119,16 @@ export class RelayedProviderOutput {
   /** Output waits for the chat to be ready (`release()`). */
   get holding(): boolean {
     return this.held !== null
+  }
+
+  /** Only an attach whose output is held for its consumer reads kept lines. */
+  get wantsKeptLines(): boolean {
+    return !this.keptLinesRead && this.held !== null
+  }
+
+  dropKeptLines(): void {
+    this.keptLinesRead = true
+    this.keptLines.clear()
   }
 
   /** Hands held output on in order, in slices; settles once nothing is held. */
