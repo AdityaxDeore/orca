@@ -258,24 +258,29 @@ export function turnReply(link: ExternalConversationLink, turn: EndedChatTurn): 
   return link.bot && message && isQuietBotResult(message) ? undefined : message
 }
 
-/** Who a retry of the turn asks for: its opener's asker, only when the opener carried every request
- *  the turn answered. A turn that answered several askers gets no retry, so none acts for the wrong one. */
+/** Who a retry of the turn asks for, only when one request opened it and the turn answered no other:
+ *  its opener's asker, or no one named for a continuation of one cut request. A turn that answered
+ *  several requests gets no retry, so none acts for the wrong asker. */
 export function retryAskerOf(
   body: AgentJournalItemBody | undefined,
-  stamps: readonly { deliveryId: string }[]
+  stamps: readonly { account: string; deliveryId: string }[]
 ): Pick<EndedTurnReplies, 'askedBy'> {
   const opener = body?.kind === 'message' ? body : undefined
+  const claimed = opener?.connectorClaim?.origin
+  const one = opener?.connectorDelivery ?? claimed?.[0]
   if (
-    !opener?.connectorDelivery ||
-    !stamps.every((stamp) => stamp.deliveryId === opener.connectorDelivery?.deliveryId)
+    !opener ||
+    !one ||
+    !stamps.every((stamp) => stamp.account === one.account && stamp.deliveryId === one.deliveryId)
   ) {
     return {}
   }
   const { origin, asker, connectorConversation } = opener
+  const own = opener.connectorDelivery !== undefined
   return {
     askedBy: {
-      origin: origin ?? 'connector',
-      ...(asker ? { asker } : {}),
+      origin: own && origin ? origin : 'connector',
+      ...(own && asker ? { asker } : {}),
       ...(connectorConversation ? { connectorConversation } : {})
     }
   }
