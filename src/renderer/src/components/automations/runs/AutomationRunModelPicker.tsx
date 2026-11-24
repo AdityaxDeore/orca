@@ -90,10 +90,10 @@ export function AutomationRunModelSelect({
     >
       <SelectTrigger
         size="xs"
-        variant="error"
+        variant="destructive"
         aria-labelledby={`${nameId} ${valueId}`}
         title={failedLabel}
-        className="max-w-[45%] min-w-36 shrink-0 @max-[25rem]:max-w-[calc(100%_-_4.75rem)] @max-[25rem]:gap-0.5 @max-[25rem]:px-1.5 @max-[25rem]:[&_svg]:size-3"
+        className="max-w-[45%] min-w-36 shrink-0 @max-[25rem]:max-w-[calc(100%_-_4.75rem)]"
       >
         <span id={nameId} className="sr-only">
           {t('automations.runModelFix.model', 'Model')}

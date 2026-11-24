@@ -183,7 +183,7 @@ function RunRecovery({
         }}
         onPickModel={async (option) => {
           if (remote) {
-            await new Promise((resolve) => setTimeout(resolve, 2000))
+            await new Promise((resolve) => setTimeout(resolve, 5000))
           }
           setModel(option.id)
           const run = scenarios.afterPick
@@ -195,7 +195,7 @@ function RunRecovery({
         onReviewSetup={noop}
         onSelectRun={noop}
       />
-      <Toaster />
+      <Toaster duration={30_000} />
       {workspaceOpened ? <p role="status">Sample workspace opened</p> : null}
       {editorOpen ? (
         <AutomationEditorDialog
