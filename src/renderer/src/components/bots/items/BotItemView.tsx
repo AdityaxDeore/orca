@@ -49,6 +49,7 @@ import { BotItemLoading } from './BotItemLoading'
 import { BotItemLinksBlock } from './BotItemLinks'
 import { BotItemMarkdown } from './BotItemMarkdown'
 import { BotItemFrom } from './BotItemFrom'
+import { BotItemCloseNote } from './BotItemCloseNote'
 
 const NO_FOLDERS: never[] = []
 
@@ -197,7 +198,10 @@ export function BotItemBody({
   // goes, and focus it held comes here.
   useEffect(() => {
     if (takeFocus?.()) {
-      pane.current?.focus({ preventScroll: true })
+      const back = pane.current
+        ?.closest('[data-bot-item-pane]')
+        ?.querySelector<HTMLButtonElement>('[data-bot-item-back]')
+      ;(back ?? pane.current)?.focus({ preventScroll: true })
     }
   }, [takeFocus, deleted])
   const chatTitle =
@@ -338,7 +342,7 @@ export function BotItemBody({
                         />
                       ) : null}
                       {item.status === 'canceled' || item.status === 'done' ? (
-                        <CloseNote item={item} />
+                        <BotItemCloseNote item={item} />
                       ) : null}
                       {item.doneMeans ? (
                         <section>
@@ -416,21 +420,6 @@ export function BotItemBody({
       {notes.dialog}
       {snoozing.dialog}
     </div>
-  )
-}
-
-function CloseNote({ item }: { item: BotItem }): React.JSX.Element | null {
-  const t = useTranslate()
-  if (!item.closeNote) {
-    return null
-  }
-  return (
-    <p className="rounded-md bg-muted px-2.5 py-2 text-xs text-muted-foreground">
-      {item.status === 'canceled'
-        ? t('bots.items.view.canceledNote', 'Canceled:')
-        : t('bots.items.view.doneNote', 'Done:')}{' '}
-      <span className="text-foreground">{item.closeNote}</span>
-    </p>
   )
 }
 
