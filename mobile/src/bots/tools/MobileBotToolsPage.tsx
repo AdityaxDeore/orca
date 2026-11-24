@@ -86,7 +86,7 @@ export function MobileBotToolsRow(props: {
           ? t('bots.settings.readFailed', 'Couldn’t load')
           : (toolsLine(tools, botAgentLabel(props.bot.agent), t) ?? '')
       }
-      detail
+      detail={tools !== 'failed'}
       onPress={props.onOpen}
     />
   )

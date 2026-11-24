@@ -3573,7 +3573,7 @@
         "addedMany": "Added {{count}} lines",
         "bot": "Forget, from {{chat}}",
         "changedMany": "Changed {{count}} lines",
-        "chat": "Chat \"{{title}}\"",
+        "chat": "Chat “{{title}}”",
         "chatFrom": "{{chat}} · from {{source}}",
         "edited": "Edited: {{fact}}",
         "forgot": "Forgot: {{fact}}",

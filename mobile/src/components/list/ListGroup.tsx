@@ -156,7 +156,11 @@ type ListRowProps = {
   navigates?: boolean
   /** Draws a check: the row is the picked option. */
   selected?: boolean
+  /** A checkbox row that draws its own tick: its state for screen readers. */
+  checked?: boolean
   destructive?: boolean
+  /** An action, not a setting (e.g. "Open sign-in page"): the title in the accent, like Home's "Pair a desktop". */
+  accent?: boolean
   /** Something new to read: the title bolder. */
   strong?: boolean
   onPress?: () => void
@@ -186,7 +190,9 @@ export function ListRow({
   accessory,
   navigates = false,
   selected,
+  checked,
   destructive = false,
+  accent = false,
   strong = false,
   onPress,
   onLongPress,
@@ -210,7 +216,8 @@ export function ListRow({
           listRowStyles.title,
           subtitle !== undefined && listRowStyles.titleEmphasis,
           strong && listRowStyles.titleStrong,
-          destructive && listRowStyles.titleDestructive
+          destructive && listRowStyles.titleDestructive,
+          accent && listRowStyles.titleAccent
         ]}
         numberOfLines={wrapTitle ? undefined : 1}
       >
@@ -281,7 +288,9 @@ export function ListRow({
       accessibilityRole={accessibilityRole ?? (selected === undefined ? 'button' : 'radio')}
       accessibilityLabel={accessibilityLabel ?? (value ? `${title}, ${value}` : title)}
       accessibilityState={
-        selected === undefined ? inertState : { ...inertState, checked: selected, selected }
+        selected === undefined
+          ? { ...inertState, ...(checked !== undefined && { checked }) }
+          : { ...inertState, checked: selected, selected }
       }
       testID={testID}
       style={({ pressed }) => [...rowStyle, pressed && listRowStyles.pressed]}
@@ -337,6 +346,7 @@ const listRowStyles = themedStyleSheet(() => ({
   titleEmphasis: { fontWeight: '500' },
   titleStrong: { fontWeight: '700' },
   titleDestructive: { color: colors.statusRed },
+  titleAccent: { color: colors.accentBlue },
   subtitle: { fontSize: 13, color: colors.textSecondary, flexShrink: 1 },
   subtitleMono: { fontFamily: typography.monoFamily },
   value: { fontSize: 15, color: colors.textSecondary, flexShrink: 1, maxWidth: 180 },
